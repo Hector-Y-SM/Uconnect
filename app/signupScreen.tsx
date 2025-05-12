@@ -1,38 +1,37 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert, Text, TouchableOpacity } from 'react-native';
+import { View, TextInput, Button, Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/subapase';
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const handleEmailSignup = async () => {
+    const { error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
-      Alert.alert('error de inicio de sesión', error.message);
+      Alert.alert('Error al registrar', error.message);
       return;
     }
 
-    router.replace('/entry-checker');
+    Alert.alert('revisa tu correo para verificar tu cuenta');
+
+    router.replace('/');
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar sesión</Text>
+      <Text style={styles.title}>Registro</Text>
+      <Text>Ingresa tu correo y una contraseña</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
         value={email}
         onChangeText={setEmail}
-        autoCapitalize="none"
         keyboardType="email-address"
       />
 
@@ -49,19 +48,15 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-      <Button title="Ingresar" onPress={handleLogin} />
-
-      <View style={{ marginTop: 20 }}>
-        <Button title="crear una cuenta" onPress={() => router.push('/signupScreen')} />
-      </View>
+      <Button title="registrarme" onPress={handleEmailSignup} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 12, padding: 10, borderRadius: 6 },
+  container: { padding: 24, flex: 1, justifyContent: 'center' },
+  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
+  input: { borderWidth: 1, padding: 10, marginBottom: 12, borderRadius: 6 },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -69,7 +64,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginBottom: 12,
     paddingHorizontal: 10,
-    borderColor: '#ccc',
   },
   passwordInput: {
     flex: 1,
