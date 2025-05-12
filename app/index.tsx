@@ -1,62 +1,26 @@
-import { Smae } from "@/interfaces/smae.supabase";
-import { useEffect, useState } from "react";
-import { FlatList, Text, View } from "react-native";
-import { supabase } from "@/lib/subapase";
+import { useState, useEffect } from 'react'
+import { supabase } from '.././lib/subapase'
+import Auth from './components/Auth'
+import Account from './components/Account'
+import { View } from 'react-native'
+import { Session } from '@supabase/supabase-js'
 
-export default function Index() {
-  const [alimentos, setAlimentos] = useState<Smae[]>([]);
-  const [dataError, setDataError] = useState("");
+export default function App() {
+  const [session, setSession] = useState<Session | null>(null)
 
   useEffect(() => {
-    loadAlimentos();
-  }, []);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
 
-  const loadAlimentos = async () => {
-    try {
-      const { data, error } = await supabase.from("smae").select("*").limit(4);
-      if (error) {
-        setDataError(error.message);
-        console.log("Supabase error:", error.details);
-      } else {
-        setAlimentos(data ?? []);
-      }
-    } catch (error) {
-      console.log("Network or unexpected error:", error);
-    }
-  };
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+  }, [])
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
-      {alimentos.length !== 0 ? (
-        <FlatList
-          ListHeaderComponent={
-            <View style={{ marginBottom: 20}}>
-              <Text style={{ fontSize: 25, textTransform: "uppercase" }}>
-                Lista de alimentos
-              </Text>
-              <Text>Busqueda Basica</Text>
-            </View>
-          }
-          keyExtractor={(item) => item.id}
-          data={alimentos}
-          renderItem={(alimento) => (
-            <Text style={{ fontSize: 20, fontWeight: "thin" }}>
-              {alimento.item.alimento}
-            </Text>
-          )}
-        />
-        ) : (
-          <>
-            <Text>Error</Text>
-            <Text>{dataError}</Text>
-          </>
-        )}
+    <View>
+      {session && session.user ? <Account key={session.user.id} session={session} /> : <Auth />}
     </View>
-  );
+  )
 }
