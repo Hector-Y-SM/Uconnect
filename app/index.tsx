@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/subapase';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -9,6 +9,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
+  
   const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -21,6 +22,31 @@ export default function LoginScreen() {
     }
 
     router.replace('/entry-checker');
+  };
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
+      return;
+    }
+
+    try {
+  
+      const { error } = await supabase.auth.resetPasswordForEmail('al21760195@ite.edu.mx', {
+        redirectTo: 'https://reset-password-uconnect.vercel.app/'
+      });
+
+      if (error) throw error;
+
+      Alert.alert(
+        'Email Enviadooooo',
+        'Se ha enviado un enlace de recuperación a tu correo eleeeeeeeectrónico.\n\nPor favor, abre el enlace en tu dispositivo.'
+      );
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido';
+      Alert.alert('Error', errorMessage);
+    }
   };
 
   return (
@@ -51,7 +77,14 @@ export default function LoginScreen() {
 
       <Button title="Ingresar" onPress={handleLogin} />
 
-      <View style={{ marginTop: 20 }}>
+      <TouchableOpacity 
+        style={styles.forgotPassword} 
+        onPress={() => router.push('/resetPassword')}
+      >
+        <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+      </TouchableOpacity>
+
+      <View style={styles.signupContainer}>
         <Button title="crear una cuenta" onPress={() => router.push('/signupScreen')} />
       </View>
     </View>
@@ -78,5 +111,16 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 18,
     marginLeft: 10,
+  },
+  forgotPassword: {
+    marginTop: 15,
+    alignItems: 'center',
+  },
+  forgotPasswordText: {
+    color: '#2196F3',
+    textDecorationLine: 'underline',
+  },
+  signupContainer: {
+    marginTop: 20,
   },
 });

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/subapase';
+import { supabase } from '@/lib/supabase';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');

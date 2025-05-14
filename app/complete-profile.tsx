@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Button, TextInput, View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/subapase';
+import { supabase } from '@/lib/supabase';
 
 export default function CompleteProfile() {
   const [step, setStep] = useState(1);

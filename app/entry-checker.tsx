@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '@/lib/subapase';
+import { supabase } from '@/lib/supabase';
 
 export default function EntryChecker() {
   const [loading, setLoading] = useState(true);
