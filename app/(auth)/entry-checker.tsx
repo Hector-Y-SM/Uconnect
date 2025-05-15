@@ -32,7 +32,7 @@ export default function EntryChecker() {
       } else if (profile.is_first_time) {
         router.replace('/complete-profile');
       } else {
-        router.replace('/homeScreen');
+        router.replace('/(tabs)');
       }
 
       setLoading(false);
