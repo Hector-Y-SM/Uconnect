@@ -43,7 +43,7 @@ export default function CompleteProfile() {
     }
 
     Alert.alert(`¡Bienvenido, ${username}!`);
-    router.replace('/homeScreen');
+    router.replace('/(tabs)');
   };
 
   const renderStep = () => {
