@@ -1,6 +1,3 @@
-//Nota: aqui falta mostrar los cursos a los que el post va dirigido, ya que un post puede tener
-//mas de un curso al cual va dirigido, ya arregle las tablas y sus relaciones para que un post pueda
-//tener mas de un curso, asi como la pantalla createPost ya soporta elegir mas de un curso.
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -22,25 +19,28 @@ export default function HomeScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
   const fetchPosts = async () => {
     const { data, error } = await supabase
       .from("posts")
       .select(
         `
-    post_uuid,
-    description,
-    image_url,
-    created_at,
-    user_uuid,
-    info_user:info_user (
-      username
-    ),
-    category:category_post (
-      category_name
-    ),
-    course:courses (
-      name_course
-    )
+      post_uuid,
+      description,
+      image_url,
+      created_at,
+      user_uuid,
+      info_user:info_user (
+        username
+      ),
+      category:category_post (
+        category_name
+      ),
+      post_courses (
+        courses (
+          name_course
+        )
+      )
     `
       )
       .order("created_at", { ascending: false });
@@ -49,16 +49,18 @@ export default function HomeScreen() {
       console.error("Error al obtener posts:", error.message);
     } else {
       const formattedPosts: Post[] = data.map((post) => ({
-        ...post,
+        post_uuid: post.post_uuid,
+        description: post.description,
+        image_url: post.image_url,
+        created_at: post.created_at,
+        user_uuid: post.user_uuid,
         info_user: Array.isArray(post.info_user)
           ? post.info_user[0]
           : post.info_user,
         category: Array.isArray(post.category)
-          ? post.category[0] || null
+          ? post.category[0]
           : post.category,
-        course: Array.isArray(post.course)
-          ? post.course[0] || null
-          : post.course,
+        courses: post.post_courses?.flatMap((pc) => pc.courses) || [],
       }));
 
       setPosts(formattedPosts);
@@ -85,13 +87,18 @@ export default function HomeScreen() {
           />
         </TouchableOpacity>
       ) : null}
+
       <Text className="font-bold text-lg mb-1">
         @{item.info_user?.username || "Desconocido"}
       </Text>
 
       <Text className="text-sm text-gray-500 mb-1">
-        Curso: {item.course?.name_course || "No especificado"}
+        Cursos:{" "}
+        {item.courses.length > 0
+          ? item.courses.map((c) => c.name_course).join(", ")
+          : "No especificado"}
       </Text>
+
       <Text className="text-sm text-gray-500 mb-2">
         Tipo: {item.category?.category_name || "No especificado"}
       </Text>
@@ -112,11 +119,10 @@ export default function HomeScreen() {
       </View>
     </View>
   );
+
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      {/* Header reutilizable */}
       <HeaderWithSearch />
-      {/* Lista de posts */}
       <FlatList
         data={posts}
         keyExtractor={(item) => item.post_uuid}
