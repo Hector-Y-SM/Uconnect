@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { Picker } from "@react-native-picker/picker";
-import Header from "../components/Header";
 import { supabase } from "@/lib/supabase";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
@@ -20,6 +19,7 @@ import * as FileSystem from "expo-file-system";
 import { getMimeType } from "../helpers/mimeType";
 import { Category, Course } from "@/interfaces/interfaces_tables";
 import { FontAwesome } from "@expo/vector-icons";
+import HeaderWithBack from "../components/HeaderWithBack";
 
 export default function CreatePost() {
   const [description, setDescription] = useState("");
@@ -201,7 +201,7 @@ export default function CreatePost() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <Header />
+      <HeaderWithBack />
       <ScrollView
         className="px-4"
         contentContainerStyle={{ paddingBottom: 40 }}
