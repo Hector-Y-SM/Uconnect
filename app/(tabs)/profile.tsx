@@ -183,6 +183,7 @@ export default function ProfileScreen() {
           data={userPosts}
           keyExtractor={(item) => item.post_uuid}
           renderItem={renderPost}
+          contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }} 
           ListEmptyComponent={
             <Text className="text-center text-gray-400 mt-6">
               No has creado publicaciones aún.

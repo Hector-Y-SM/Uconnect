@@ -127,6 +127,7 @@ export default function HomeScreen() {
         data={posts}
         keyExtractor={(item) => item.post_uuid}
         renderItem={renderPost}
+        contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }} 
         ListEmptyComponent={
           <Text className="text-gray-400 text-center mt-10">
             No hay publicaciones aún.
