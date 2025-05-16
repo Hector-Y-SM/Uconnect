@@ -12,7 +12,7 @@ export default function EntryChecker() {
       const {
         data: { session },
         error,
-      } = await supabase.auth.getSession(); //con esto obtenemos al usuario autenticado
+      } = await supabase.auth.getSession(); 
 
       if (error || !session) {
         router.replace('/'); 
@@ -27,7 +27,7 @@ export default function EntryChecker() {
         .eq('user_uuid', userId)
         .single();
 
-      if (profileError || !profile) { //no esta lleno y lo manda a llenar sus datos
+      if (profileError || !profile) {
         router.replace('/complete-profile'); 
       } else if (profile.is_first_time) {
         router.replace('/complete-profile');
