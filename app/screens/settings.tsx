@@ -13,7 +13,7 @@ const settings = () => {
       Alert.alert("Error al cerrar sesión", error.message);
       return;
     }
-    router.replace("./(auth)/login");
+    router.replace("../(auth)/login");
   };
 
   return (

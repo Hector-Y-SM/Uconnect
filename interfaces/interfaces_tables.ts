@@ -18,4 +18,16 @@ interface Post {
   courses: { name_course: string }[]; 
 }
 
-export { Category, Course, Post };
+interface UserInfo {
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  phone_number?: string;
+  university?: string;
+  course?: string;
+  portada_url?: string;
+  icon_url?: string;
+}
+
+export { Category, Course, Post, UserInfo };
