@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { View, Text } from "react-native";
 import '@/app/global.css'
+import React from "react";
 
 export default function TabsLayout() {
   const TabBarIcon = ({
@@ -68,7 +69,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="profileScreen"
         options={{
           title: "Perfil",
           tabBarIcon: ({ focused }) => (

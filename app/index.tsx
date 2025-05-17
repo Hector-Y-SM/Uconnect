@@ -10,7 +10,7 @@ export default function Index() {
       const { data } = await supabase.auth.getSession();
 
       if (data.session) {
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/');
       } else {
         router.replace('/(auth)/login');
       }

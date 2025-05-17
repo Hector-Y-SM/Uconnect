@@ -6,12 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
+  Alert
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import HeaderWithSearch from "../components/HeaderWithSearch";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { FontAwesome } from "@expo/vector-icons";
 import { Post } from "@/interfaces/interfaces_tables";
 import PostCard from "../components/PostCard";
 
@@ -22,6 +22,16 @@ export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const fetchPosts = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      Alert.alert("Error", "No session found.");
+      router.replace('../(auth)/login')
+      return;
+    }
+
     const { data, error } = await supabase
       .from("posts")
       .select(

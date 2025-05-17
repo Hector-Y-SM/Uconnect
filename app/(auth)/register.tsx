@@ -18,6 +18,14 @@ export default function SignUpScreen() {
   const router = useRouter();
 
   const handleEmailSignup = async () => {
+    const iteEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ite\.edu\.mx$/;
+    const ensenadaEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ensenada\.edu\.mx$/;
+
+    if(!iteEmail.test(email) && !ensenadaEmail.test(email)){
+        Alert.alert('correo invalido', 'solo se aceptan correos con el dominio @ite.edu.mx o @ensenada.edu.mx');
+        return;
+    }
+
     const { error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
@@ -25,7 +33,7 @@ export default function SignUpScreen() {
       return;
     }
 
-    Alert.alert("revisa tu correo para verificar tu cuenta");
+    Alert.alert('registro exitoso','revisa tu correo para verificar tu cuenta');
 
     router.replace("/");
   };

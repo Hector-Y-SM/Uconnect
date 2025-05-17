@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import React from 'react';
 
 export default function EntryChecker() {
   const [loading, setLoading] = useState(true);
@@ -28,9 +29,9 @@ export default function EntryChecker() {
         .single();
 
       if (profileError || !profile) {
-        router.replace('/complete-profile'); 
+        router.replace('/complete-profile-step1'); 
       } else if (profile.is_first_time) {
-        router.replace('/complete-profile');
+        router.replace('/complete-profile-step1');
       } else {
         router.replace('/(tabs)');
       }

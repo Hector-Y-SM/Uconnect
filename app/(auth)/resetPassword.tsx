@@ -8,17 +8,17 @@ export default function ResetPassword() {
   const router = useRouter();
 
   const handleResetPassword = async () => {
-    const emailPattern = /^[^\s@]+@ite\.edu\.mx$/;
     if (!email) {
-          Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
-          return;
-        }
-    if (!emailPattern.test(email)) {
-        Alert.alert(
-          'Error', 
-          'el correo debe tener dominio tipo @ite.eud.mx'
-        );
-        return;
+      Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
+      return;
+    }
+    
+    const iteEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ite\.edu\.mx$/;
+    const ensenadaEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ensenada\.edu\.mx$/;
+
+    if(!iteEmail.test(email) && !ensenadaEmail.test(email)){
+      Alert.alert('correo invalido', 'solo se aceptan correos con el dominio @ite.edu.mx o @ensenada.edu.mx');
+      return;
     }
     try{
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
