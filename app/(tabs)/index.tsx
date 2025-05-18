@@ -1,16 +1,6 @@
-
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  FlatList,
-  TouchableOpacity,
-  Modal,
-  Alert,
-  RefreshControl
-} from "react-native";
-import { useRouter } from "expo-router";
+import { Text, Image, FlatList, TouchableOpacity, Modal, Alert, RefreshControl } from "react-native";
+import { useRouter, useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import HeaderWithSearch from "../components/HeaderWithSearch";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -26,6 +16,8 @@ export default function HomeScreen() {
 
   const fetchPosts = async () => {
     try {
+      setRefreshing(true);
+      
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -87,16 +79,25 @@ export default function HomeScreen() {
     }
   };
 
-  
+  // Cargar posts iniciales
   useEffect(() => {
     fetchPosts();
   }, []);
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('HomeScreen recibió foco - refrescando datos');
+      fetchPosts();
+      return () => {};
+    }, [])
+  );
 
   // Configuración de suscripción en tiempo real a cambios en posts
   useEffect(() => {
     // Canal para todos los cambios en la tabla posts
     const channel = supabase
-      .channel('posts-changes')
+      .channel('posts-changes-home')
       .on(
         'postgres_changes',
         {
@@ -105,24 +106,20 @@ export default function HomeScreen() {
           table: 'posts'
         },
         (payload) => {
-          console.log('Cambio detectado en posts:', payload.eventType, payload);
+          console.log('Cambio detectado en posts desde HomeScreen:', payload.eventType, payload);
           // Refrescar todos los posts cuando haya cualquier cambio
           fetchPosts();
         }
       )
       .subscribe();
 
-    console.log('Suscripción a cambios en posts activada');
-
     // Limpiar la suscripción cuando el componente se desmonte
     return () => {
-      console.log('Eliminando suscripción a cambios en posts');
       supabase.removeChannel(channel);
     };
   }, []);
 
   const handleRefresh = () => {
-    setRefreshing(true);
     fetchPosts();
   };
 
@@ -132,7 +129,6 @@ export default function HomeScreen() {
       setSelectedImage={setSelectedImage}
       setModalVisible={setModalVisible}
       onPostUpdated={() => {
-        setRefreshing(true);
         fetchPosts();
       }}
     />

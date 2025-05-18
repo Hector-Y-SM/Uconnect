@@ -11,13 +11,13 @@ export default function LoginScreen() {
 
   
   const handleLogin = async () => {
-    /*const iteEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ite\.edu\.mx$/;
+    const iteEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ite\.edu\.mx$/;
     const ensenadaEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ensenada\.edu\.mx$/;
 
     if(!iteEmail.test(email) && !ensenadaEmail.test(email)){
         Alert.alert('correo invalido', 'solo se aceptan correos con el dominio @ite.edu.mx o @ensenada.edu.mx');
         return;
-    }*/
+    }
 
     const { error } = await supabase.auth.signInWithPassword({
       email,

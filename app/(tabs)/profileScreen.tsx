@@ -7,7 +7,7 @@ import { Post, UserInfo } from "@/interfaces/interfaces_tables";
 import Header from "../components/Header";
 import ProfileInfo from "../components/profileInfo";
 import UserPosts from "../components/userPost";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useNavigation, useRouter } from "expo-router";
 
 export default function ProfileScreen() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -15,108 +15,64 @@ export default function ProfileScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
+  const navigation = useNavigation()
 
+  // Obtener el ID del usuario y configurar las suscripciones
   useEffect(() => {
-    const subscribeToUserPosts = async () => {
+    const setupUserAndSubscriptions = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
   
-      if (!session) return;
+      if (!session) {
+        Alert.alert("Error", "No session found.");
+        router.replace('../(auth)/login');
+        return;
+      }
   
-      const userId = session.user.id;
-  
+      const currentUserId = session.user.id;
+      setUserId(currentUserId);
+      
+      // Canal para TODOS los cambios en la tabla posts
       const channel = supabase
-        .channel('realtime-user-posts')
+        .channel('realtime-all-posts-profile')
         .on(
           'postgres_changes',
           {
-            event: '*', // puede ser 'INSERT', 'UPDATE', 'DELETE' si quieres limitarlo
+            event: '*', // escucha todo
             schema: 'public',
             table: 'posts',
-            filter: `user_uuid=eq.${userId}`, // Solo cambios de este usuario
           },
           (payload) => {
             console.log("Cambio detectado en la tabla posts:", payload.eventType);
-            fetchUserInfo(); // Refresca tanto la info del usuario como sus posts
+            
+            // si es un DELETE o si el post pertenece al usuario actual, actualizamos
+            if (
+              payload.eventType === 'DELETE' || 
+              (payload.new && payload.new.user_uuid === currentUserId)
+            ) {
+              console.log("actualizando post del usuario");
+              fetchUserPosts(currentUserId);
+            }
           }
         )
         .subscribe();
+
+      // Cargar datos iniciales
+      fetchUserInfo(currentUserId);
   
       return () => {
         supabase.removeChannel(channel);
       };
     };
   
-    subscribeToUserPosts();
+    setupUserAndSubscriptions();
   }, []);
 
-  const fetchUserInfo = async (newUrl?: string, fieldToUpdate?: "portada_url" | "icon_url") => {    
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      Alert.alert("Error", "No session found.");
-      router.replace('../(auth)/login')
-      return;
-    }
-
-    const userId = session.user.id;
-
-    const { data: infoWithCourses, error } = await supabase
-      .from("info_user")
-      .select(
-        `
-        *,
-        user_courses (
-          courses (
-            name_course
-          )
-        )
-      `
-      )
-      .eq("user_uuid", userId)
-      .single();
-
-    const { data , error: errorUserData } = await supabase
-      .from("info_user")
-      .select('bio')
-      .eq("user_uuid", userId)
-      .single();
-
-    if (error || errorUserData) {
-      console.error("Error fetching user info with courses:", error?.message || "Unknown error");
-      return;
-    }
-
-    if (!infoWithCourses || !data) {
-      Alert.alert("Error", "No user info found.");
-      return;
-    }
-
-    const coursesArray =
-      infoWithCourses.user_courses?.map(
-        (uc: { courses: { name_course: string } }) => uc.courses.name_course
-      ) || [];
-
-    const coursesString = coursesArray.join(", ") || "No especificado";
-
-    const userInfoFormatted: UserInfo = {
-      bio: data.bio,
-      first_name: infoWithCourses.first_name,
-      last_name: infoWithCourses.last_name,
-      username: infoWithCourses.username,
-      email: session.user.email ?? "",
-      phone_number: infoWithCourses.phone_number,
-      university: infoWithCourses.university,
-      course: coursesString,
-      portada_url: infoWithCourses.portada_url || null,
-      icon_url: infoWithCourses.icon_url || null,
-    };
-
-    setUserInfo(userInfoFormatted);
-
+  const fetchUserPosts = async (userId: string) => {
+    if (!userId) return;
+    
     const { data: posts, error: postsError } = await supabase
       .from("posts")
       .select(
@@ -164,9 +120,96 @@ export default function ProfileScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchUserInfo();
-  }, []);
+  const fetchUserInfo = async (newUrlOrUserId?: string, fieldToUpdate?: "portada_url" | "icon_url") => {    
+    let currentUserId = userId;
+    let newUrl: string | undefined;
+    
+    if (newUrlOrUserId) {
+      if (newUrlOrUserId.startsWith('http')) {
+        newUrl = newUrlOrUserId;
+      } else {
+        currentUserId = newUrlOrUserId;
+      }
+    }
+    
+    if (!currentUserId) return;
+
+    const { data: infoWithCourses, error } = await supabase
+      .from("info_user")
+      .select(
+        `
+        *,
+        user_courses (
+          courses (
+            name_course
+          )
+        )
+      `
+      )
+      .eq("user_uuid", currentUserId)
+      .single();
+
+    const { data, error: errorUserData } = await supabase
+      .from("info_user")
+      .select('bio')
+      .eq("user_uuid", currentUserId)
+      .single();
+
+    if (error || errorUserData) {
+      console.error("Error fetching user info with courses:", error?.message || "Unknown error");
+      return;
+    }
+
+    if (!infoWithCourses || !data) {
+      Alert.alert("Error", "No user info found.");
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      Alert.alert("Error", "No session found.");
+      router.replace('../(auth)/login')
+      return;
+    }
+
+    const coursesArray =
+      infoWithCourses.user_courses?.map(
+        (uc: { courses: { name_course: string } }) => uc.courses.name_course
+      ) || [];
+
+    const coursesString = coursesArray.join(", ") || "No especificado";
+
+    const userInfoFormatted: UserInfo = {
+      bio: data.bio,
+      first_name: infoWithCourses.first_name,
+      last_name: infoWithCourses.last_name,
+      username: infoWithCourses.username,
+      email: session.user.email ?? "",
+      phone_number: infoWithCourses.phone_number,
+      university: infoWithCourses.university,
+      course: coursesString,
+      portada_url: infoWithCourses.portada_url || null,
+      icon_url: infoWithCourses.icon_url || null,
+    };
+
+    setUserInfo(userInfoFormatted);
+    
+    // Obtener los posts del usuario
+    fetchUserPosts(currentUserId);
+  };
+
+
+   useEffect(() => {
+     const unsubscribe = navigation.addListener('focus', () => {
+       if (userId) {
+         fetchUserPosts(userId);
+       }
+     });
+     return unsubscribe;
+   }, [navigation, userId]);
 
   if (!userInfo) {
     return (
@@ -185,13 +228,16 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <ProfileInfo userInfo={userInfo} refreshUserInfo={fetchUserInfo} />
+        <ProfileInfo 
+          userInfo={userInfo} 
+          refreshUserInfo={(newUrl, fieldToUpdate) => fetchUserInfo(newUrl, fieldToUpdate)} 
+        />
         
         <UserPosts 
           userPosts={userPosts} 
           setSelectedImage={setSelectedImage} 
           setModalVisible={setModalVisible} 
-          refreshUserPosts={fetchUserInfo}
+          refreshUserPosts={() => userId && fetchUserPosts(userId)}
         />
 
         {/* Modal para mostrar imagen en grande */}
