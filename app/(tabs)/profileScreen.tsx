@@ -205,6 +205,7 @@ export default function ProfileScreen() {
    useEffect(() => {
      const unsubscribe = navigation.addListener('focus', () => {
        if (userId) {
+        console.log('profileScreen recibió foco - refrescando datos');
          fetchUserPosts(userId);
        }
      });

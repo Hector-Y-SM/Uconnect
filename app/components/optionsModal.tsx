@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { supabase } from "@/lib/supabase";
 import CustomModal from "./customModal";
+import { useRouter } from "expo-router";
 
 
 interface OptionsModalProps {
@@ -13,6 +14,7 @@ interface OptionsModalProps {
 }
 
 const OptionsModal = ({ visible, onClose, postId, onPostDeleted }: OptionsModalProps) => {
+  const router = useRouter();
   const handleDeletePost = async () => {
     Alert.alert(
       "Eliminar publicación",
@@ -59,6 +61,10 @@ const OptionsModal = ({ visible, onClose, postId, onPostDeleted }: OptionsModalP
     
     onClose();
   
+    router.push({
+      pathname: '../screens/createEditPost',
+      params: { postId }
+    });
     console.log("Editar post:", postId);
   };
 
@@ -67,7 +73,7 @@ const OptionsModal = ({ visible, onClose, postId, onPostDeleted }: OptionsModalP
       visible={visible}
       onClose={onClose}
       title="Opciones de publicación"
-      heightPercentage={30} 
+      heightPercentage={25} 
     >
       <View className="p-4">
         <TouchableOpacity

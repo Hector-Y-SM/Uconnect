@@ -28,7 +28,7 @@ export default function HeaderWithSearch() {
           <Ionicons name="funnel-outline" size={20} color="#374151" />
         </TouchableOpacity>
 
-        <TouchableOpacity className="p-2 bg-rose-100 rounded-full" onPress={() => router.push('./screens/createPost')}>
+        <TouchableOpacity className="p-2 bg-rose-100 rounded-full" onPress={() => router.push('../screens/createEditPost')}>
           <Ionicons name="add-circle-outline" size={20} color="#f43f5e" />
         </TouchableOpacity>
       </View>

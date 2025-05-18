@@ -20,10 +20,20 @@ import { getMimeType } from "../helpers/mimeType";
 import { Category, Course } from "@/interfaces/interfaces_tables";
 import { FontAwesome } from "@expo/vector-icons";
 import HeaderWithBack from "../components/HeaderWithBack";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useLocalSearchParams } from "expo-router";
 
-export default function CreatePost() {
+export default function CreateEditPost() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { postId } = useLocalSearchParams();
+  
+  // Estado para determinar si estamos en modo edición o creación
+  const [isEditMode, setIsEditMode] = useState(false);
+  
   const [description, setDescription] = useState("");
   const [image, setImage] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null); // Para almacenar la URL de la imagen ya existente
   const [username, setUsername] = useState("");
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,7 +76,60 @@ export default function CreatePost() {
     fetchUserData();
     fetchCategories();
     fetchCourses();
-  }, []);
+    
+    // Si tenemos un postId, cargar los datos del post para editar
+    if (postId) {
+      setIsEditMode(true);
+      fetchPostData();
+    }
+  }, [postId]);
+
+  // Función para cargar los datos del post a editar
+  const fetchPostData = async () => {
+    setLoading(true);
+    
+    try {
+      // Obtener datos del post
+      const { data: postData, error: postError } = await supabase
+        .from("posts")
+        .select("*")
+        .eq("post_uuid", postId)
+        .single();
+        
+      if (postError) {
+        throw postError;
+      }
+      
+      // Cargar los datos en el estado
+      setDescription(postData.description || "");
+      setSelectedCategory(postData.uuid_category || "");
+      setImageUrl(postData.image_url);
+      
+      if (postData.image_url) {
+        setImage(postData.image_url);
+      }
+      
+      // Obtener cursos relacionados al post
+      const { data: coursesData, error: coursesError } = await supabase
+        .from("post_courses")
+        .select("course_uuid")
+        .eq("post_uuid", postId);
+        
+      if (coursesError) {
+        throw coursesError;
+      }
+      
+      // Establecer los cursos seleccionados
+      if (coursesData) {
+        setSelectedCourses(coursesData.map(item => item.course_uuid));
+      }
+    } catch (error) {
+      console.error("Error al cargar datos del post:", error);
+      Alert.alert("Error", "No se pudieron cargar los datos de la publicación");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -85,6 +148,7 @@ export default function CreatePost() {
 
     if (!result.canceled && result.assets.length > 0) {
       setImage(result.assets[0].uri);
+      setImageUrl(null); // Resetear la URL de la imagen anterior si estamos cambiando la imagen
     }
   };
 
@@ -93,6 +157,11 @@ export default function CreatePost() {
       const fileExt = uri.split(".").pop() || "jpg";
       const fileName = `${uuidv4()}.${fileExt}`;
       const mimeType = getMimeType(uri);
+
+      // Si la URI comienza con http/https, es una imagen ya subida
+      if (uri.startsWith("http")) {
+        return uri;
+      }
 
       // read img base64
       const base64 = await FileSystem.readAsStringAsync(uri, {
@@ -148,54 +217,103 @@ export default function CreatePost() {
 
     setLoading(true);
 
-    let imageUrl = null;
-    if (image) {
-      imageUrl = await uploadImage(image);
-    }
-
-    // Insertar post
-    const { data, error } = await supabase
-      .from("posts")
-      .insert({
-        user_uuid: userId,
-        description,
-        image_url: imageUrl,
-        uuid_category: selectedCategory,
-      })
-      .select("post_uuid")
-      .single(); // Obtener el UUID del nuevo post
-
-    if (error || !data) {
-      setLoading(false);
-      console.error("Error al crear el post:", error);
-      Alert.alert("Error", "No se pudo crear el post.");
-      return;
-    }
-
-    const postUuid = data.post_uuid;
-    const courseRelations = selectedCourses.map((course_uuid) => ({
-      post_uuid: postUuid,
-      course_uuid,
-    }));
-
-    const { error: relationError } = await supabase
-      .from("post_courses")
-      .insert(courseRelations);
-
-    setLoading(false);
-
-    if (relationError) {
-      console.error("Error al relacionar cursos:", relationError);
-      Alert.alert(
-        "Error",
-        "Post creado pero no se pudieron relacionar los cursos."
-      );
-    } else {
-      Alert.alert("Éxito", "Post creado correctamente.");
+    try {
+      let finalImageUrl = imageUrl;
+      
+      // Solo subir imagen si hay una nueva
+      if (image && !image.startsWith("http")) {
+        finalImageUrl = await uploadImage(image);
+      }
+      
+      if (isEditMode) {
+        // Actualizar post existente
+        const { error } = await supabase
+          .from("posts")
+          .update({
+            user_uuid: userId,
+            description,
+            image_url: finalImageUrl,
+            uuid_category: selectedCategory,
+          })
+          .eq("post_uuid", postId);
+  
+        if (error) {
+          throw error;
+        }
+  
+        // Eliminar relaciones de cursos existentes
+        const { error: deleteError } = await supabase
+          .from("post_courses")
+          .delete()
+          .eq("post_uuid", postId);
+  
+        if (deleteError) {
+          throw deleteError;
+        }
+  
+        // Crear nuevas relaciones de cursos
+        const courseRelations = selectedCourses.map((course_uuid) => ({
+          post_uuid: postId,
+          course_uuid,
+        }));
+  
+        const { error: relationError } = await supabase
+          .from("post_courses")
+          .insert(courseRelations);
+  
+        if (relationError) {
+          throw relationError;
+        }
+  
+        Alert.alert("Éxito", "Post actualizado correctamente.");
+      } else {
+        // Crear nuevo post
+        const { data, error } = await supabase
+          .from("posts")
+          .insert({
+            user_uuid: userId,
+            description,
+            image_url: finalImageUrl,
+            uuid_category: selectedCategory,
+          })
+          .select("post_uuid")
+          .single();
+  
+        if (error || !data) {
+          throw error || new Error("No se pudo crear el post");
+        }
+  
+        const postUuid = data.post_uuid;
+        const courseRelations = selectedCourses.map((course_uuid) => ({
+          post_uuid: postUuid,
+          course_uuid,
+        }));
+  
+        const { error: relationError } = await supabase
+          .from("post_courses")
+          .insert(courseRelations);
+  
+        if (relationError) {
+          throw relationError;
+        }
+  
+        Alert.alert("Éxito", "Post creado correctamente.");
+      }
+      
+      // Limpiar estados y volver a la pantalla anterior
       setDescription("");
       setImage(null);
       setSelectedCategory("");
       setSelectedCourses([]);
+      navigation.goBack();
+      
+    } catch (error: any) {
+      console.error("Error al procesar el post:", error);
+      Alert.alert("Error", isEditMode 
+        ? "No se pudo actualizar la publicación."
+        : "No se pudo crear el post.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -209,7 +327,9 @@ export default function CreatePost() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="mt-4 px-4">
-          <Text className="text-lg font-semibold mb-2">Crear publicación</Text>
+          <Text className="text-lg font-semibold mb-2">
+            {isEditMode ? "Editar publicación" : "Crear publicación"}
+          </Text>
           <Text className="text-sm text-gray-600 mb-4">
             Publicando como: {username}
           </Text>
@@ -233,9 +353,8 @@ export default function CreatePost() {
           </View>
 
           {/* Picker de Curso */}
-          <Text className="mb-1">Dirigido a:</Text>
-          <View className="border border-gray-300 rounded-md mb-4">
-            <Text className="mb-1">Dirigido a (selección múltiple):</Text>
+          <Text className="mb-1">Dirigido a (selección múltiple):</Text>
+          <View className="border border-gray-300 rounded-md mb-4 p-2">
             {courses.map((course) => (
               <TouchableOpacity
                 key={course.course_uuid}
@@ -275,7 +394,9 @@ export default function CreatePost() {
             className="mt-3 p-3 bg-indigo-100 rounded-md items-center"
             onPress={pickImage}
           >
-            <Text className="text-indigo-600">Agregar imagen</Text>
+            <Text className="text-indigo-600">
+              {image ? "Cambiar imagen" : "Agregar imagen"}
+            </Text>
           </TouchableOpacity>
 
           {image && (
@@ -283,11 +404,14 @@ export default function CreatePost() {
               <Image
                 source={{ uri: image }}
                 className="w-full h-64 rounded-md"
-                resizeMode="contain" // muestra la imagen completa
+                resizeMode="contain"
               />
 
               <TouchableOpacity
-                onPress={() => setImage(null)}
+                onPress={() => {
+                  setImage(null);
+                  setImageUrl(null);
+                }}
                 className="absolute top-2 right-2 bg-white p-1 rounded-full shadow"
               >
                 <FontAwesome name="close" size={20} color="red" />
@@ -303,7 +427,9 @@ export default function CreatePost() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-white font-semibold">Publicar</Text>
+              <Text className="text-white font-semibold">
+                {isEditMode ? "Actualizar" : "Publicar"}
+              </Text>
             )}
           </TouchableOpacity>
         </View>
