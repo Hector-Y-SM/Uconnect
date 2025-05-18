@@ -30,4 +30,12 @@ interface UserInfo {
   icon_url?: string;
 }
 
-export { Category, Course, Post, UserInfo };
+interface Comment {
+  comment_uuid: string;
+  post_uuid: string;
+  user_uuid: string;
+  content: string;
+  comment_date: string;
+}
+
+export { Category, Course, Post, UserInfo, Comment };
