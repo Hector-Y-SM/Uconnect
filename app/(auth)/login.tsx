@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert, Text, TouchableOpacity } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Alert, Text, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 
@@ -59,7 +59,13 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Iniciar sesión</Text>
+
+      {/* Logo debajo del título */}
+      <Image
+        source={require('@/assets/images/logo.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
       <TextInput
         style={styles.input}
@@ -83,7 +89,11 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-      <Button title="Ingresar" onPress={handleLogin} />
+      <Button 
+        title="Ingresar" 
+        onPress={handleLogin} 
+        color="#8C092C" 
+      />
 
       <TouchableOpacity 
         style={styles.forgotPassword} 
@@ -103,9 +113,28 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 12, padding: 10, borderRadius: 6 },
+  container: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    padding: 20, 
+    backgroundColor: '#fff' // Fondo blanco
+  },
+  title: { 
+    fontSize: 24, 
+    fontWeight: '300',
+    fontFamily: 'Montserrat-Light',
+    marginBottom: 24, 
+    textAlign: 'center',
+    color: '#222', // Negro mate
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginBottom: 12,
+    padding: 10,
+    borderRadius: 6,
+    color: '#222', // Negro mate
+  },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,5 +162,11 @@ const styles = StyleSheet.create({
   },
   signupContainer: {
     marginTop: 20,
+  },
+  logo: {
+    width: 220,      // tamaño
+    height: 220,     // altura we
+    alignSelf: 'center',
+    marginVertical: 20,
   },
 });
