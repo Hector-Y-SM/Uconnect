@@ -1,20 +1,62 @@
+
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Post } from "@/interfaces/interfaces_tables";
 import CommentModal from "./commentModal";
 import { supabase } from "@/lib/supabase";
-
+import OptionsModal from "./optionsModal";
 
 type PostCardProps = {
   item: Post;
   setSelectedImage: (url: string) => void;
   setModalVisible: (visible: boolean) => void;
+  onPostUpdated: () => void; 
 };
 
-const PostCard = ({ item, setSelectedImage, setModalVisible }: PostCardProps) => {
+const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: PostCardProps) => {
   const [commentModalVisible, setCommentModalVisible] = useState(false);
+  const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [commentLength, setCommentLength] = useState(0);
+  const [isAuthor, setIsAuthor] = useState(false);
+  const [currentUserUUID, setCurrentUserUUID] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkCurrentUser = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Error al obtener la sesión:', sessionError.message);
+        return;
+      }
+      
+      if (!session?.user) {
+        console.log('No hay sesión de usuario activa');
+        return;
+      }
+      
+      const userUUID = session.user.id;
+      setCurrentUserUUID(userUUID);
+
+      const { data: userData, error: userError } = await supabase
+        .from('info_user')
+        .select('*')
+        .eq('user_uuid', userUUID)
+        .single();
+      
+      if (userError) {
+        console.error('Error al obtener información del usuario:', userError.message);
+        return;
+      }
+      
+
+      if (userData && item.info_user && userData.username === item.info_user.username) {
+        setIsAuthor(true);
+      }
+    };
+    
+    checkCurrentUser();
+  }, [item.info_user?.username]);
 
   const fetchCommentCount = async (postId: string): Promise<number> => {
     const { count, error } = await supabase
@@ -72,6 +114,8 @@ const PostCard = ({ item, setSelectedImage, setModalVisible }: PostCardProps) =>
     const newCount = await fetchCommentCount(item.post_uuid);
     setCommentLength(newCount);
   };
+
+
   
   return (
     <View className="bg-white m-4 p-4 rounded-xl shadow">
@@ -93,6 +137,17 @@ const PostCard = ({ item, setSelectedImage, setModalVisible }: PostCardProps) =>
       <Text className="font-bold text-lg mb-1">
         @{item.info_user?.username || "Desconocido"}
       </Text>
+      
+
+      {isAuthor && (
+        <TouchableOpacity 
+          onPress={() => setOptionsModalVisible(true)}
+          className="flex-row items-center"
+        >
+          <FontAwesome name="ellipsis-h" size={24} color="gray" />
+          <Text className="text-gray-500 ml-2 text-sm">Opciones</Text>
+        </TouchableOpacity>
+      )}
 
       <Text className="text-sm text-gray-500 mb-1">
         Cursos:{" "}
@@ -109,18 +164,19 @@ const PostCard = ({ item, setSelectedImage, setModalVisible }: PostCardProps) =>
 
       <View className="flex-row justify-between mt-2">
         <TouchableOpacity 
-          onPress={() => setCommentModalVisible(true)}
-          className="flex-row items-center"
-        >
-          <FontAwesome name="comment-o" size={24} color="gray" />
-          <Text className="text-gray-500 ml-2 text-sm">{commentLength}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
           onPress={() => console.log("Guardar", item.post_uuid)}
           className="flex-row items-center"
         >
           <FontAwesome name="bookmark-o" size={24} color="gray" />
           <Text className="text-gray-500 ml-2 text-sm">Guardar</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          onPress={() => setCommentModalVisible(true)}
+          className="flex-row items-center"
+        >
+          <FontAwesome name="comment-o" size={24} color="gray" />
+          <Text className="text-gray-500 ml-2 text-sm">{commentLength}</Text>
         </TouchableOpacity>
       </View>
 
@@ -130,10 +186,19 @@ const PostCard = ({ item, setSelectedImage, setModalVisible }: PostCardProps) =>
         postId={item.post_uuid}
         postAuthor={item.info_user?.username || "Desconocido"}
       />
+
+
+      <OptionsModal
+        visible={optionsModalVisible}
+        onClose={() => setOptionsModalVisible(false)}
+        postId={item.post_uuid}
+        onPostDeleted={() => {
+          setOptionsModalVisible(false);
+          onPostUpdated(); 
+        }}
+      />
     </View>
   );
 };
 
-
 export default PostCard;
-

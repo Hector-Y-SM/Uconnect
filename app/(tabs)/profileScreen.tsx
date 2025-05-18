@@ -16,6 +16,41 @@ export default function ProfileScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    const subscribeToUserPosts = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+  
+      if (!session) return;
+  
+      const userId = session.user.id;
+  
+      const channel = supabase
+        .channel('realtime-user-posts')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // puede ser 'INSERT', 'UPDATE', 'DELETE' si quieres limitarlo
+            schema: 'public',
+            table: 'posts',
+            filter: `user_uuid=eq.${userId}`, // Solo cambios de este usuario
+          },
+          (payload) => {
+            console.log("Cambio detectado en la tabla posts:", payload.eventType);
+            fetchUserInfo(); // Refresca tanto la info del usuario como sus posts
+          }
+        )
+        .subscribe();
+  
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    };
+  
+    subscribeToUserPosts();
+  }, []);
+
   const fetchUserInfo = async (newUrl?: string, fieldToUpdate?: "portada_url" | "icon_url") => {    
     const {
       data: { session },
@@ -44,12 +79,18 @@ export default function ProfileScreen() {
       .eq("user_uuid", userId)
       .single();
 
-    if (error) {
-      console.error("Error fetching user info with courses:", error.message);
+    const { data , error: errorUserData } = await supabase
+      .from("info_user")
+      .select('bio')
+      .eq("user_uuid", userId)
+      .single();
+
+    if (error || errorUserData) {
+      console.error("Error fetching user info with courses:", error?.message || "Unknown error");
       return;
     }
 
-    if (!infoWithCourses) {
+    if (!infoWithCourses || !data) {
       Alert.alert("Error", "No user info found.");
       return;
     }
@@ -62,6 +103,7 @@ export default function ProfileScreen() {
     const coursesString = coursesArray.join(", ") || "No especificado";
 
     const userInfoFormatted: UserInfo = {
+      bio: data.bio,
       first_name: infoWithCourses.first_name,
       last_name: infoWithCourses.last_name,
       username: infoWithCourses.username,
@@ -149,6 +191,7 @@ export default function ProfileScreen() {
           userPosts={userPosts} 
           setSelectedImage={setSelectedImage} 
           setModalVisible={setModalVisible} 
+          refreshUserPosts={fetchUserInfo}
         />
 
         {/* Modal para mostrar imagen en grande */}

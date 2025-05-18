@@ -13,7 +13,7 @@
     "**/*.ts",
     "**/*.tsx",
     "nativewind-env.d.ts"
-  ],
+, "app/helpers/useUserPostSubscription.js", "app/helpers/useUserPostSubscription.js", "app/helpers/useUserPostSubscription.js"  ],
   "exclude": [
     "interfaces/smae.subapase.ts"
   ]
