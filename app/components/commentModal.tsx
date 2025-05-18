@@ -9,14 +9,10 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  ActivityIndicator,
+  ActivityIndicator
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
 import { Comment } from "@/interfaces/interfaces_tables";
 import { supabase } from "@/lib/supabase";
-
-// Definir la interfaz para los comentarios
-
 
 interface CommentModalProps {
     visible: boolean;
@@ -25,31 +21,53 @@ interface CommentModalProps {
     postAuthor: string;
   }
 
+//para poder obtener el nombre de usuario y foto del comentario original
+  interface CommentWithUserInfo extends Comment {
+    user_icon?: string;
+    user_name?: string;
+  }
+
   const CommentModal = ({
     visible,
     onClose,
     postId,
     postAuthor,
   }: CommentModalProps) => {
-    const [comments, setComments] = useState<Comment[]>([]);
+    const [comments, setComments] = useState<CommentWithUserInfo[]>([]);
     const [loading, setLoading] = useState(true);
     const [commentText, setCommentText] = useState("");
     const [userUUID, setUserUUID] = useState<string | null>(null);
     const [currentUserIcon, setCurrentUserIcon] = useState<string | null>(null);
-    const [username, setUsername] = useState('');
+    const [isEdit, setIsEdit] = useState(false);
+    const [editingCommentUUID, setEditingCommentUUID] = useState<string | null>(null);
+
 
     const fetchComments = async () => {
+        setIsEdit(false)
         setLoading(true);
+        
         const { data, error } = await supabase
           .from("comments")
-          .select("*")
+          .select(`
+            *,
+            info_user:user_uuid (
+              icon_url,
+              username
+            )
+          `)
           .eq("post_uuid", postId)
           .order("comment_date", { ascending: false });
     
         if (error) {
           console.error("Error fetching comments:", error.message);
         } else {
-          setComments(data || []);
+          const processedComments = data?.map(comment => ({
+            ...comment,
+            user_icon: comment.info_user?.icon_url || "https://via.placeholder.com/40",
+            user_name: comment.info_user?.username || "Usuario"
+          })) || [];
+          
+          setComments(processedComments);
         }
         setLoading(false);
     };
@@ -61,7 +79,7 @@ interface CommentModalProps {
         } = await supabase.auth.getSession();
     
         if (sessionError) {
-          console.error("Error fetching session:", sessionError.message);
+          console.error(sessionError.message);
           return;
         }
     
@@ -77,46 +95,49 @@ interface CommentModalProps {
           .single();
     
         if (iconError) {
-          console.error("Error fetching user icon:", iconError.message);
+          console.error(iconError.message);
           return;
         }
     
         setCurrentUserIcon(data?.icon_url || null);
-
-        const { data: userData, error } = await supabase
-        .from("info_user")
-        .select("username")
-        .eq("user_uuid", uuid)
-        .single();
-  
-      if (error) {
-        console.error("Error fetching user icon:", error.message);
-        return;
-      }
-  
-      setUsername(userData.username);
     };
 
     const handleAddComment = async () => {
         if (!commentText.trim() || !userUUID) return;
-    
-        const newComment = {
-          post_uuid: postId,
-          user_uuid: userUUID,
-          content: commentText.trim(),
-          comment_date: new Date().toISOString(),
-        };
-    
-        const { error } = await supabase.from("comments").insert(newComment);
-    
-        if (error) {
-          console.error("Error posting comment:", error.message);
-          return;
+      
+        if (isEdit && editingCommentUUID) {
+          const { error } = await supabase
+            .from("comments")
+            .update({ content: commentText.trim(), comment_date: new Date().toISOString() })
+            .eq("comment_uuid", editingCommentUUID);
+      
+          if (error) {
+            console.error(error.message);
+            return;
+          }
+      
+          setIsEdit(false);
+          setEditingCommentUUID(null);
+        } else {
+          const newComment = {
+            post_uuid: postId,
+            user_uuid: userUUID,
+            content: commentText.trim(),
+            comment_date: new Date().toISOString(),
+          };
+      
+          const { error } = await supabase.from("comments").insert(newComment);
+      
+          if (error) {
+            console.error(error.message);
+            return;
+          }
         }
-    
+      
         setCommentText("");
         fetchComments();
-    };
+      };
+      
 
     useEffect(() => {
         if (visible) {
@@ -126,21 +147,73 @@ interface CommentModalProps {
     }, [visible]);
     
 
-    const renderCommentItem = ({ item }: { item: Comment }) => (
+    const editComment = async (comment_uuid: string) => {
+        const { data, error } = await supabase
+          .from("comments")
+          .select("content")
+          .eq("comment_uuid", comment_uuid);
+      
+        if (error) throw error;
+      
+        if (data && data.length > 0) {
+          setCommentText(data[0].content);
+          setIsEdit(true);
+          setEditingCommentUUID(comment_uuid);
+        } else {
+          setIsEdit(false);
+          setEditingCommentUUID(null);
+          console.error("no hay comentarios con esta uuid");
+        }
+      };
+      
+    const deleteComment = async (comment_uuid: string) => {
+        const { error } = await supabase
+          .from("comments")
+          .delete()
+          .eq("comment_uuid", comment_uuid);
+    
+        if (error) {
+          console.error("Error eliminando comentario:", error.message);
+          return;
+        }
+    
+        fetchComments();
+    };
+
+    const renderCommentItem = ({ item }: { item: CommentWithUserInfo }) => (
         <View className="flex-row p-4 border-b border-gray-100">
           <Image
             source={{
-              uri: currentUserIcon || "https://via.placeholder.com/40",
+              uri: item.user_icon || "https://via.placeholder.com/40",
             }}
             className="w-10 h-10 rounded-full mr-3"
           />
           <View className="flex-1 flex-col">
-            <Text className="font-bold text-sm">{'@' + username}</Text>
+            <Text className="font-bold text-sm">{'@' + item.user_name}</Text>
             <Text className="text-sm mt-1">{item.content}</Text>
             <Text className="text-gray-500 text-xs mt-1">
               {new Date(item.comment_date).toLocaleTimeString()}
             </Text>
           </View>
+          {
+            item.user_uuid === userUUID ?
+            <View className="flex-row">
+                <TouchableOpacity 
+                    onPress={() => editComment(item.comment_uuid)}
+                    className="mr-3 p-1"
+                    >
+                    <Text className="text-blue-500">Editar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    onPress={() => deleteComment(item.comment_uuid)}
+                    className="p-1"
+                    >
+                    <Text className="text-red-500">Eliminar</Text>
+                </TouchableOpacity>
+            </View>
+            :
+            null
+          }
         </View>
       );
       
@@ -191,6 +264,11 @@ interface CommentModalProps {
                       </Text>
                     </View>
                   }
+                  ListEmptyComponent={
+                    <View className="flex-1 justify-center items-center py-10">
+                      <Text className="text-gray-500 text-sm">No hay comentarios aún</Text>
+                    </View>
+                  }
                 />
               )}
     
@@ -216,7 +294,7 @@ interface CommentModalProps {
                       !commentText.trim() ? "text-blue-300" : "text-blue-500"
                     }`}
                   >
-                    Publicar
+                    {isEdit ? 'Editar' : 'Publicar'}
                   </Text>
                 </TouchableOpacity>
               </View>

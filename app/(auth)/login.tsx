@@ -11,13 +11,13 @@ export default function LoginScreen() {
 
   
   const handleLogin = async () => {
-    const iteEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ite\.edu\.mx$/;
+    /*const iteEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ite\.edu\.mx$/;
     const ensenadaEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ensenada\.edu\.mx$/;
 
     if(!iteEmail.test(email) && !ensenadaEmail.test(email)){
         Alert.alert('correo invalido', 'solo se aceptan correos con el dominio @ite.edu.mx o @ensenada.edu.mx');
         return;
-    }
+    }*/
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -30,31 +30,6 @@ export default function LoginScreen() {
     }
 
     router.replace('./entry-checker');
-  };
-
-  const handleResetPassword = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
-      return;
-    }
-
-    try {
-  
-      const { error } = await supabase.auth.resetPasswordForEmail('al21760195@ite.edu.mx', {
-        redirectTo: 'https://reset-password-uconnect.vercel.app/'
-      });
-
-      if (error) throw error;
-
-      Alert.alert(
-        'Email Enviadooooo',
-        'Se ha enviado un enlace de recuperación a tu correo eleeeeeeeectrónico.\n\nPor favor, abre el enlace en tu dispositivo.'
-      );
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Ocurrió un error desconocido';
-      Alert.alert('Error', errorMessage);
-    }
   };
 
   return (
