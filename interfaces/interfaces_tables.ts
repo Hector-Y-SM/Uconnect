@@ -28,6 +28,7 @@ interface UserInfo {
   course?: string;
   portada_url?: string;
   icon_url?: string;
+  bio: string;
 }
 
 interface Comment {

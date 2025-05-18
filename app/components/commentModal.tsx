@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Comment } from "@/interfaces/interfaces_tables";
 import { supabase } from "@/lib/supabase";
+import CustomModal from "./customModal";
 
 interface CommentModalProps {
     visible: boolean;
@@ -21,7 +22,8 @@ interface CommentModalProps {
     postAuthor: string;
   }
 
-//para poder obtener el nombre de usuario y foto del comentario original
+
+  //para poder obtener el nombre de usuario y foto del comentario original
   interface CommentWithUserInfo extends Comment {
     user_icon?: string;
     user_name?: string;
@@ -219,89 +221,62 @@ interface CommentModalProps {
       
 
       return (
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={visible}
-          onRequestClose={onClose}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            className="flex-1 justify-end"
-          >
-            <TouchableOpacity
-              activeOpacity={1}
-              className="absolute inset-0 bg-black/40"
-              onPress={onClose}
-            />
-    
-            <View className="bg-white rounded-t-2xl max-h-[60%] h-[90%]">
-              <View className="items-center py-2">
-                <View className="w-12 h-1.5 bg-gray-300 rounded-full" />
-              </View>
-    
-              <View className="flex-row justify-center py-2 border-b border-gray-100">
-                <Text className="font-semibold text-base text-gray-800">
-                  Comentarios
+        <CustomModal visible={visible} onClose={onClose} title="Comentarios">
+        {loading ? (
+          <View className="flex-1 justify-center items-center py-10">
+            <ActivityIndicator size="small" />
+            <Text className="mt-2 text-gray-500 text-sm">Cargando...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={comments}
+            keyExtractor={(item) => item.comment_uuid}
+            renderItem={renderCommentItem}
+            className="flex-1"
+            ListHeaderComponent={
+              <View className="px-4 py-3 border-b border-gray-100">
+                <Text className="text-sm text-gray-600">
+                  Publicación de @{postAuthor}
                 </Text>
               </View>
-    
-              {loading ? (
-                <View className="flex-1 justify-center items-center py-10">
-                  <ActivityIndicator size="small" />
-                  <Text className="mt-2 text-gray-500 text-sm">Cargando...</Text>
-                </View>
-              ) : (
-                <FlatList
-                  data={comments}
-                  keyExtractor={(item) => item.comment_uuid}
-                  renderItem={renderCommentItem}
-                  className="flex-1"
-                  ListHeaderComponent={
-                    <View className="px-4 py-3 border-b border-gray-100">
-                      <Text className="text-sm text-gray-600">
-                        Publicación de @{postAuthor}
-                      </Text>
-                    </View>
-                  }
-                  ListEmptyComponent={
-                    <View className="flex-1 justify-center items-center py-10">
-                      <Text className="text-gray-500 text-sm">No hay comentarios aún</Text>
-                    </View>
-                  }
-                />
-              )}
-    
-              <View className="flex-row items-center px-4 py-3 border-t border-gray-100">
-                <Image
-                  source={{ uri: currentUserIcon || "https://via.placeholder.com/40" }}
-                  className="w-8 h-8 rounded-full mr-3"
-                />
-                <TextInput
-                  className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm"
-                  placeholder="Añade un comentario..."
-                  value={commentText}
-                  onChangeText={setCommentText}
-                  multiline
-                />
-                <TouchableOpacity
-                  onPress={handleAddComment}
-                  disabled={!commentText.trim() || !userUUID}
-                  className="ml-2"
-                >
-                  <Text
-                    className={`font-semibold ${
-                      !commentText.trim() ? "text-blue-300" : "text-blue-500"
-                    }`}
-                  >
-                    {isEdit ? 'Editar' : 'Publicar'}
-                  </Text>
-                </TouchableOpacity>
+            }
+            ListEmptyComponent={
+              <View className="flex-1 justify-center items-center py-10">
+                <Text className="text-gray-500 text-sm">No hay comentarios aún</Text>
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </Modal>
+            }
+          />
+        )}
+    
+
+        <View className="flex-row items-center px-4 py-3 border-t border-gray-100">
+          <Image
+            source={{ uri: currentUserIcon || "https://via.placeholder.com/40" }}
+            className="w-8 h-8 rounded-full mr-3"
+          />
+          <TextInput
+            className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm"
+            placeholder="Añade un comentario..."
+            value={commentText}
+            onChangeText={setCommentText}
+            multiline
+          />
+          <TouchableOpacity
+            onPress={handleAddComment}
+            disabled={!commentText.trim() || !userUUID}
+            className="ml-2"
+          >
+            <Text
+              className={`font-semibold ${
+                !commentText.trim() ? "text-blue-300" : "text-blue-500"
+              }`}
+            >
+              {isEdit ? "Editar" : "Publicar"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </CustomModal>
       );
-    };
+};
     
 export default CommentModal;

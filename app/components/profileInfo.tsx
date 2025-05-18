@@ -182,11 +182,11 @@ export default function ProfileInfo({ userInfo, refreshUserInfo, isOnboarding = 
         <Text className="text-gray-500">@{userInfo.username}</Text>
       </View>
 
-      {/* Biografía */}
       <View className="p-4 border-b border-gray-200">
         <Text className="text-lg font-bold mt-4 mb-2">
           {isOnboarding ? "Tus datos" : "Biografia"}
         </Text>
+        <Text className="text-sm text-gray-600">{userInfo.bio}</Text>
         <Text className="text-sm text-gray-600">Email: {userInfo.email}</Text>
         <Text className="text-sm text-gray-600">
           Teléfono: {userInfo.phone_number || "No disponible"}

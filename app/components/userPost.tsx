@@ -7,12 +7,14 @@ interface UserPostsProps {
   userPosts: Post[];
   setSelectedImage: (uri: string | null) => void;
   setModalVisible: (visible: boolean) => void;
+  refreshUserPosts?: () => void; 
 }
 
 export default function UserPosts({ 
   userPosts, 
   setSelectedImage, 
-  setModalVisible 
+  setModalVisible,
+  refreshUserPosts 
 }: UserPostsProps) {
   
   const renderPost = ({ item }: { item: Post }) => (
@@ -20,6 +22,12 @@ export default function UserPosts({
       item={item}
       setSelectedImage={setSelectedImage}
       setModalVisible={setModalVisible}
+      onPostUpdated={() => {
+        console.log("Actualizando lista de posts del usuario después de modificar un post");
+        if (refreshUserPosts) {
+          refreshUserPosts();
+        }
+      }}
     />
   );
 
