@@ -41,7 +41,7 @@ export default function ResetPassword() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recuperar Contraseña</Text>
-      <Text>Ingresa tu correo electrónico</Text>
+      <Text style={styles.subtitle}>Ingresa tu correo electrónico</Text>
 
       <TextInput
         style={styles.input}
@@ -49,31 +49,58 @@ export default function ResetPassword() {
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
+        placeholderTextColor="#aaa"
       />
 
-      <Button 
-        title="Enviar correo de recuperación" 
-        onPress={handleResetPassword}
-      />
+      <View style={styles.buttonContainer}>
+        <Button 
+          title="Enviar correo de recuperación" 
+          onPress={handleResetPassword}
+          color="#8C092C"
+        />
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: "#fff"
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10
+    fontSize: 24,
+    fontWeight: '300',
+    fontFamily: 'Montserrat-Light',
+    marginBottom: 24,
+    textAlign: 'center',
+    color: '#222',
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#555',
+    marginBottom: 18,
+    textAlign: 'center',
+    fontFamily: 'Montserrat-Light',
   },
   input: {
     borderWidth: 1,
-    padding: 10,
+    borderColor: '#ccc',
     marginBottom: 12,
-    borderRadius: 6
-  }
+    padding: 10,
+    borderRadius: 6,
+    color: '#222',
+    fontFamily: 'Montserrat-Light',
+    fontSize: 16,
+    backgroundColor: '#fafafa',
+    width: '100%',
+  },
+  buttonContainer: {
+    marginTop: 18,
+    width: '100%',
+    overflow: 'hidden',
+  },
 })
