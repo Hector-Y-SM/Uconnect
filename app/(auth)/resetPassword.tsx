@@ -40,24 +40,26 @@ export default function ResetPassword() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Recuperar Contraseña</Text>
-      <Text style={styles.subtitle}>Ingresa tu correo electrónico</Text>
+      <View style={styles.card}>
+        <Text style={styles.title}>Recuperar Contraseña</Text>
+        <Text style={styles.subtitle}>Ingresa tu correo electrónico</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        placeholderTextColor="#aaa"
-      />
-
-      <View style={styles.buttonContainer}>
-        <Button 
-          title="Enviar correo de recuperación" 
-          onPress={handleResetPassword}
-          color="#8C092C"
+        <TextInput
+          style={styles.input}
+          placeholder="Correo electrónico"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          placeholderTextColor="#aaa"
         />
+
+        <View style={styles.buttonContainer}>
+          <Button 
+            title="Enviar correo de recuperación" 
+            onPress={handleResetPassword}
+            color="#8C092C"
+          />
+        </View>
       </View>
     </View>
   )
@@ -70,6 +72,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: "#fff"
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   title: {
     fontSize: 24,
