@@ -110,7 +110,7 @@ export default function CompleteProfileStep4() {
       const userId = session.user.id;
 
       
-      const { error: profileError } = await supabase.from("info_user").upsert({
+      const { error: profileError } = await supabase.from("info_user").insert({
         user_uuid: userId,
         username: username as string,
         first_name: firstName as string,

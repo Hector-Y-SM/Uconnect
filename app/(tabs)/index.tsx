@@ -23,7 +23,8 @@ export default function HomeScreen() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        router.replace('../screens/NotFoundScreen');
+        Alert.alert("Error", "No session found.");
+        router.replace('../(auth)/login');
         return;
       }
 
@@ -54,6 +55,7 @@ export default function HomeScreen() {
       if (error) {
         console.error("Error al obtener posts:", error.message);
       } else {
+        
         const formattedPosts: Post[] = data.map((post) => ({
           post_uuid: post.post_uuid,
           description: post.description,

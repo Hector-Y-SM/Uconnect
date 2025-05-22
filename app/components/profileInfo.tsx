@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import { supabase } from "@/lib/supabase";
@@ -10,10 +11,16 @@ import { getMimeType } from "../helpers/mimeType";
 interface ProfileInfoProps {
   userInfo: UserInfo;
   refreshUserInfo: (newUrl?: string, fieldToUpdate?: "portada_url" | "icon_url") => Promise<void>;
-  isOnboarding?: boolean; 
+  isOnboarding?: boolean;
+  canEditImages?: boolean; // Nueva propiedad booleana
 }
 
-export default function ProfileInfo({ userInfo, refreshUserInfo, isOnboarding = false }: ProfileInfoProps) {
+export default function ProfileInfo({ 
+  userInfo, 
+  refreshUserInfo, 
+  isOnboarding = false, 
+  canEditImages = true // Por defecto es true para mantener compatibilidad
+}: ProfileInfoProps) {
   const [uploading, setUploading] = useState(false);
 
   const handleImageUpload = async ({
@@ -93,6 +100,8 @@ export default function ProfileInfo({ userInfo, refreshUserInfo, isOnboarding = 
   };
 
   const handleSelectCoverImage = async () => {
+    if (!canEditImages) return; // No hacer nada si no se puede editar
+
     try {
       setUploading(true);
       await handleImageUpload({
@@ -115,6 +124,8 @@ export default function ProfileInfo({ userInfo, refreshUserInfo, isOnboarding = 
   };
 
   const handleSelectAvatarImage = async () => {
+    if (!canEditImages) return; // No hacer nada si no se puede editar
+
     try {
       setUploading(true);
       await handleImageUpload({
@@ -136,43 +147,65 @@ export default function ProfileInfo({ userInfo, refreshUserInfo, isOnboarding = 
     }
   };
 
+  // Componente de portada - TouchableOpacity solo si se puede editar
+  const CoverImageContent = () => (
+    <>
+      {uploading ? (
+        <View className="h-40 bg-gray-100 justify-center items-center">
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      ) : userInfo.portada_url ? (
+        <Image
+          source={{ uri: userInfo.portada_url }}
+          className="w-full h-40"
+          resizeMode="cover"
+        />
+      ) : (
+        <View className="h-40 bg-gray-300 justify-center items-center">
+          <FontAwesome name="plus" size={30} color="white" />
+          <Text className="text-white mt-2">Agregar portada</Text>
+        </View>
+      )}
+    </>
+  );
+
+  // Componente de avatar - TouchableOpacity solo si se puede editar
+  const AvatarContent = () => (
+    <>
+      {userInfo.icon_url ? (
+        <Image
+          source={{ uri: userInfo.icon_url }}
+          className="w-28 h-28 rounded-full border-4 border-white bg-gray-100"
+        />
+      ) : (
+        <View className="w-28 h-28 rounded-full border-4 border-white bg-gray-300 justify-center items-center">
+          <FontAwesome name="user" size={40} color="white" />
+          <Text className="text-white text-xs">Agregar avatar</Text>
+        </View>
+      )}
+    </>
+  );
+
   return (
     <>
       {/* Portada */}
-      <TouchableOpacity onPress={handleSelectCoverImage}>
-        {uploading ? (
-          <View className="h-40 bg-gray-100 justify-center items-center">
-            <ActivityIndicator size="large" color="#000" />
-          </View>
-        ) : userInfo.portada_url ? (
-          <Image
-            source={{ uri: userInfo.portada_url }}
-            className="w-full h-40"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="h-40 bg-gray-300 justify-center items-center">
-            <FontAwesome name="plus" size={30} color="white" />
-            <Text className="text-white mt-2">Agregar portada</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+      {canEditImages ? (
+        <TouchableOpacity onPress={handleSelectCoverImage}>
+          <CoverImageContent />
+        </TouchableOpacity>
+      ) : (
+        <CoverImageContent />
+      )}
 
       {/* Avatar */}
       <View className="items-center -mt-20 px-4">
-        <TouchableOpacity onPress={handleSelectAvatarImage}>
-          {userInfo.icon_url ? (
-            <Image
-              source={{ uri: userInfo.icon_url }}
-              className="w-28 h-28 rounded-full border-4 border-white bg-gray-100"
-            />
-          ) : (
-            <View className="w-28 h-28 rounded-full border-4 border-white bg-gray-300 justify-center items-center">
-              <FontAwesome name="user" size={40} color="white" />
-              <Text className="text-white text-xs">Agregar avatar</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        {canEditImages ? (
+          <TouchableOpacity onPress={handleSelectAvatarImage}>
+            <AvatarContent />
+          </TouchableOpacity>
+        ) : (
+          <AvatarContent />
+        )}
       </View>
 
       <View className="items-center mt-2">

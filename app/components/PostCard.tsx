@@ -6,6 +6,7 @@ import { Post } from "@/interfaces/interfaces_tables";
 import CommentModal from "./commentModal";
 import { supabase } from "@/lib/supabase";
 import OptionsModal from "./optionsModal";
+import { useRouter } from "expo-router";
 
 type PostCardProps = {
   item: Post;
@@ -20,6 +21,7 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
   const [commentLength, setCommentLength] = useState(0);
   const [isAuthor, setIsAuthor] = useState(false);
   const [currentUserUUID, setCurrentUserUUID] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const checkCurrentUser = async () => {
@@ -49,7 +51,7 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
         return;
       }
       
-
+      console.log(item.info_user)
       if (userData && item.info_user && userData.username === item.info_user.username) {
         setIsAuthor(true);
       }
@@ -134,9 +136,28 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
         </TouchableOpacity>
       ) : null}
 
-      <Text className="font-bold text-lg mb-1">
-        @{item.info_user?.username || "Desconocido"}
-      </Text>
+      <TouchableOpacity
+        onPress={
+          async () => {
+            const {data, error} = await supabase
+                .from('info_user')
+                .select('user_uuid')
+                .eq('username', item.info_user?.username)
+                .single()
+
+
+            router.push({
+              pathname: '../screens/userProfileScreen',
+              params: { userUuid: data?.user_uuid } 
+            })
+          }
+        }
+        >
+        <Text className="font-bold text-lg mb-1">
+          @{item.info_user?.username || "Desconocido"}
+        </Text>
+      </TouchableOpacity>
+
       
 
       {isAuthor && (

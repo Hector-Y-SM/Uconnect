@@ -34,7 +34,7 @@ export default function UserPosts({
   return (
     <View className="flex-1 bg-gray-100">
       <Text className="text-lg font-bold mx-4 mt-4 mb-2">
-        Tus publicaciones
+        Publicaciones
       </Text>
       <FlatList
         data={userPosts}
