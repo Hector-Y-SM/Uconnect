@@ -145,6 +145,15 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
                 .eq('username', item.info_user?.username)
                 .single()
 
+            //TODO: MANEJAR POSIBLES ERRORES    
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if(session?.user.id == data?.user_uuid){
+              router.push({pathname:'../(tabs)/profileScreen'})
+              return;
+            }
 
             router.push({
               pathname: '../screens/userProfileScreen',
