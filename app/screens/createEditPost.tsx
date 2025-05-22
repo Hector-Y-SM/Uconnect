@@ -21,11 +21,11 @@ import { Category, Course } from "@/interfaces/interfaces_tables";
 import { FontAwesome } from "@expo/vector-icons";
 import HeaderWithBack from "../components/HeaderWithBack";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 export default function CreateEditPost() {
   const navigation = useNavigation();
-  const route = useRoute();
+  const router = useRouter();
   const { postId } = useLocalSearchParams();
   
   // Estado para determinar si estamos en modo edición o creación
@@ -49,9 +49,12 @@ export default function CreateEditPost() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!session) return;
+      if (!session) { 
+        router.replace('./NotFoundScreen');
+        return;
+      }
 
-      const id = session.user.id;
+      const id = session!.user.id;
       setUserId(id);
 
       const { data, error } = await supabase

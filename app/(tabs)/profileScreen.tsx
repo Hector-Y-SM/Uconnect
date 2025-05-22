@@ -26,8 +26,7 @@ export default function ProfileScreen() {
       } = await supabase.auth.getSession();
   
       if (!session) {
-        Alert.alert("Error", "No session found.");
-        router.replace('../(auth)/login');
+        router.replace('../screens/NotFoundScreen');
         return;
       }
   
@@ -169,9 +168,8 @@ export default function ProfileScreen() {
       data: { session },
     } = await supabase.auth.getSession();
 
-    if (!session) {
-      Alert.alert("Error", "No session found.");
-      router.replace('../(auth)/login')
+    if (!session) { 
+      router.replace('../screens/NotFoundScreen')
       return;
     }
 

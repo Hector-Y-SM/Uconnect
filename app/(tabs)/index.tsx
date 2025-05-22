@@ -23,8 +23,7 @@ export default function HomeScreen() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        Alert.alert("Error", "No session found.");
-        router.replace('../(auth)/login');
+        router.replace('../screens/NotFoundScreen');
         return;
       }
 

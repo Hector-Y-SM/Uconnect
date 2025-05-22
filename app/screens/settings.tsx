@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
@@ -6,6 +6,22 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function Settings() {
+
+  useEffect(()=> {
+    const getSession = async () => {
+      const {
+          data: { session },
+        } = await supabase.auth.getSession();
+    
+        if (!session) {
+          router.replace('./NotFoundScreen');
+          return;
+        }
+    }
+
+    getSession();
+  }, [])
+
   const handleLogout = async () => {
 
     Alert.alert(

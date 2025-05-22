@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -22,6 +22,21 @@ export default function CambiarContrasena() {
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
 
   const router = useRouter();
+
+    useEffect(()=> {
+      const getSession = async () => {
+        const {
+            data: { session },
+          } = await supabase.auth.getSession();
+      
+          if (!session) {
+            router.replace('./NotFoundScreen');
+            return;
+          }
+      }
+  
+      getSession();
+    }, [])
 
   const handleChangePassword = async () => {
     if (nueva !== confirmar) {

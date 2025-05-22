@@ -33,7 +33,7 @@ export default function EditProfile() {
         error: sessionError,
       } = await supabase.auth.getSession();
       if (!session || sessionError) {
-        Alert.alert("Error", "No hay sesión activa.");
+        router.replace('./NotFoundScreen');
         return;
       }
 
