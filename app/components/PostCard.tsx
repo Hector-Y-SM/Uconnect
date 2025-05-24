@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Post } from "@/interfaces/interfaces_tables";
 import CommentModal from "./commentModal";
@@ -12,10 +11,17 @@ type PostCardProps = {
   item: Post;
   setSelectedImage: (url: string) => void;
   setModalVisible: (visible: boolean) => void;
-  onPostUpdated: () => void; 
+  onPostUpdated: () => void;
+  onDeleteSavedPost?: (postUUID: string) => void;
 };
 
-const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: PostCardProps) => {
+const PostCard = ({
+  item,
+  setSelectedImage,
+  setModalVisible,
+  onPostUpdated,
+  onDeleteSavedPost,
+}: PostCardProps) => {
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [commentLength, setCommentLength] = useState(0);
@@ -25,38 +31,48 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
 
   useEffect(() => {
     const checkCurrentUser = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
       if (sessionError) {
-        console.error('Error al obtener la sesión:', sessionError.message);
+        console.error("Error al obtener la sesión:", sessionError.message);
         return;
       }
-      
+
       if (!session?.user) {
-        console.log('No hay sesión de usuario activa');
+        console.log("No hay sesión de usuario activa");
         return;
       }
-      
+
       const userUUID = session.user.id;
       setCurrentUserUUID(userUUID);
 
       const { data: userData, error: userError } = await supabase
-        .from('info_user')
-        .select('*')
-        .eq('user_uuid', userUUID)
+        .from("info_user")
+        .select("*")
+        .eq("user_uuid", userUUID)
         .single();
-      
+
       if (userError) {
-        console.error('Error al obtener información del usuario:', userError.message);
+        console.error(
+          "Error al obtener información del usuario:",
+          userError.message
+        );
         return;
       }
-      
-      console.log(item.info_user)
-      if (userData && item.info_user && userData.username === item.info_user.username) {
+
+      console.log(item.info_user);
+      if (
+        userData &&
+        item.info_user &&
+        userData.username === item.info_user.username
+      ) {
         setIsAuthor(true);
       }
     };
-    
+
     checkCurrentUser();
   }, [item.info_user?.username]);
 
@@ -90,12 +106,12 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
     const channel = supabase
       .channel(`post-comments-${item.post_uuid}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*', // Escuchar inserts, updates y deletes
-          schema: 'public',
-          table: 'comments',
-          filter: `post_uuid=eq.${item.post_uuid}` // Solo para este post
+          event: "*", // Escuchar inserts, updates y deletes
+          schema: "public",
+          table: "comments",
+          filter: `post_uuid=eq.${item.post_uuid}`, // Solo para este post
         },
         async () => {
           // Cuando ocurra cualquier cambio, actualizar el contador
@@ -117,8 +133,53 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
     setCommentLength(newCount);
   };
 
+  const handleSavePost = async () => {
+    if (!currentUserUUID) {
+      console.error("Usuario no autenticado");
+      return;
+    }
 
-  
+    // Verificar si ya fue guardado
+    const { data: existing, error: fetchError } = await supabase
+      .from("my_saved")
+      .select("saved_uuid")
+      .eq("post_uuid", item.post_uuid)
+      .eq("user_uuid", currentUserUUID)
+      .single(); // Usamos single porque solo debería haber uno
+
+    if (fetchError && fetchError.code !== "PGRST116") {
+      // PGRST116 es cuando no hay resultados (lo cual está bien)
+      console.error(
+        "Error al verificar si ya se guardó el post:",
+        fetchError.message
+      );
+      return;
+    }
+
+    if (existing) {
+      // Aquí lanzamos la alerta en lugar de solo hacer un console.log
+      Alert.alert(
+        "Post ya guardado",
+        "Este post ya está guardado en tus posts guardados.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    const { data, error } = await supabase.from("my_saved").insert([
+      {
+        post_uuid: item.post_uuid,
+        user_uuid: currentUserUUID,
+      },
+    ]);
+
+    if (error) {
+      console.error("Error al guardar el post:", error.message);
+    } else {
+      console.log("Post guardado exitosamente", data);
+    }
+  };
+
   return (
     <View className="bg-white m-4 p-4 rounded-xl shadow">
       {item.image_url ? (
@@ -137,40 +198,36 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
       ) : null}
 
       <TouchableOpacity
-        onPress={
-          async () => {
-            const {data, error} = await supabase
-                .from('info_user')
-                .select('user_uuid')
-                .eq('username', item.info_user?.username)
-                .single()
+        onPress={async () => {
+          const { data, error } = await supabase
+            .from("info_user")
+            .select("user_uuid")
+            .eq("username", item.info_user?.username)
+            .single();
 
-            //TODO: MANEJAR POSIBLES ERRORES    
-            const {
-              data: { session },
-            } = await supabase.auth.getSession();
+          //TODO: MANEJAR POSIBLES ERRORES
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
 
-            if(session?.user.id == data?.user_uuid){
-              router.push({pathname:'../(tabs)/profileScreen'})
-              return;
-            }
-
-            router.push({
-              pathname: '../screens/userProfileScreen',
-              params: { userUuid: data?.user_uuid } 
-            })
+          if (session?.user.id == data?.user_uuid) {
+            router.push({ pathname: "../(tabs)/profileScreen" });
+            return;
           }
-        }
-        >
+
+          router.push({
+            pathname: "../screens/userProfileScreen",
+            params: { userUuid: data?.user_uuid },
+          });
+        }}
+      >
         <Text className="font-bold text-lg mb-1">
           @{item.info_user?.username || "Desconocido"}
         </Text>
       </TouchableOpacity>
 
-      
-
       {isAuthor && (
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => setOptionsModalVisible(true)}
           className="flex-row items-center"
         >
@@ -193,15 +250,15 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
       <Text className="text-gray-700 mb-2">{item.description}</Text>
 
       <View className="flex-row justify-between mt-2">
-        <TouchableOpacity 
-          onPress={() => console.log("Guardar", item.post_uuid)}
+        <TouchableOpacity
+          onPress={handleSavePost}
           className="flex-row items-center"
         >
           <FontAwesome name="bookmark-o" size={24} color="gray" />
           <Text className="text-gray-500 ml-2 text-sm">Guardar</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           onPress={() => setCommentModalVisible(true)}
           className="flex-row items-center"
         >
@@ -217,16 +274,25 @@ const PostCard = ({ item, setSelectedImage, setModalVisible, onPostUpdated }: Po
         postAuthor={item.info_user?.username || "Desconocido"}
       />
 
-
       <OptionsModal
         visible={optionsModalVisible}
         onClose={() => setOptionsModalVisible(false)}
         postId={item.post_uuid}
         onPostDeleted={() => {
           setOptionsModalVisible(false);
-          onPostUpdated(); 
+          onPostUpdated();
         }}
       />
+
+      {onDeleteSavedPost && (
+        <TouchableOpacity
+          onPress={() => onDeleteSavedPost(item.post_uuid)}
+          className="flex-row items-center mt-2"
+        >
+          <FontAwesome name="trash" size={20} color="red" />
+          <Text className="text-red-500 ml-2 text-sm">Eliminar guardado</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

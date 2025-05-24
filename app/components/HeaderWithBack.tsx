@@ -3,7 +3,11 @@ import { View, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-export default function HeaderWithBack() {
+type HeaderWithBackProps = {
+  onPressBack?: () => void;
+};
+
+export default function HeaderWithBack({ onPressBack }: HeaderWithBackProps) {
   return (
     <View className="mb-4 px-4 bg-gray-800 pb-4">
       {/* Fila: Flecha atrás + Logo + Configuración */}
@@ -12,7 +16,7 @@ export default function HeaderWithBack() {
         {/* Flecha de regreso */}
         <TouchableOpacity
           className="p-2"
-          onPress={() => router.push('/')}
+          onPress={onPressBack || (() => router.push('/'))}
         >
           <Ionicons name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
@@ -34,4 +38,5 @@ export default function HeaderWithBack() {
     </View>
   );
 }
+
 

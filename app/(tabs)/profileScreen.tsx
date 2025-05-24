@@ -33,20 +33,19 @@ export default function ProfileScreen() {
       const currentUserId = session.user.id;
       setUserId(currentUserId);
       
-      // Canal para TODOS los cambios en la tabla posts
+
       const channel = supabase
         .channel('realtime-all-posts-profile')
         .on(
           'postgres_changes',
           {
-            event: '*', // escucha todo
+            event: '*',
             schema: 'public',
             table: 'posts',
           },
           (payload) => {
             console.log("Cambio detectado en la tabla posts:", payload.eventType);
             
-            // si es un DELETE o si el post pertenece al usuario actual, actualizamos
             if (
               payload.eventType === 'DELETE' || 
               (payload.new && payload.new.user_uuid === currentUserId)

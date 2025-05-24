@@ -5,12 +5,12 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import HeaderWithBack from "../components/HeaderWithBack";
 
 export default function CambiarContrasena() {
   const [actual, setActual] = useState("");
@@ -23,20 +23,20 @@ export default function CambiarContrasena() {
 
   const router = useRouter();
 
-    useEffect(()=> {
-      const getSession = async () => {
-        const {
-            data: { session },
-          } = await supabase.auth.getSession();
-      
-          if (!session) {
-            router.replace('./NotFoundScreen');
-            return;
-          }
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.replace("./NotFoundScreen");
+        return;
       }
-  
-      getSession();
-    }, [])
+    };
+
+    getSession();
+  }, []);
 
   const handleChangePassword = async () => {
     if (nueva !== confirmar) {
@@ -63,11 +63,10 @@ export default function CambiarContrasena() {
       return;
     }
 
-    const { data: loginData, error: loginError } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password: actual,
-      });
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password: actual,
+    });
 
     if (loginError) {
       Alert.alert(
@@ -98,22 +97,19 @@ export default function CambiarContrasena() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white p-4">
-      <View>
-        <TouchableOpacity onPress={() => router.replace("./settings")}>
-          <Ionicons name="arrow-back" size={28} color="black" />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <HeaderWithBack onPressBack={() => router.push("./settings")} />
+      <View className="px-6 mt-6">
+      <Text className="text-xl font-bold mb-6">Cambiar Contraseña</Text>
 
-      <Text className="text-xl font-bold mb-4">Cambiar Contraseña</Text>
-
-      <Text>Contraseña actual</Text>
-      <View style={styles.passwordContainer}>
+      {/* Campo: Contraseña actual */}
+      <Text className="mb-1">Contraseña actual</Text>
+      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 mb-4">
         <TextInput
+          className="flex-1 py-3"
           secureTextEntry={!mostrarActual}
           value={actual}
           onChangeText={setActual}
-          style={styles.passwordInput}
         />
         <TouchableOpacity onPress={() => setMostrarActual(!mostrarActual)}>
           <Ionicons
@@ -123,13 +119,14 @@ export default function CambiarContrasena() {
         </TouchableOpacity>
       </View>
 
-      <Text>Nueva contraseña</Text>
-      <View style={styles.passwordContainer}>
+      {/* Campo: Nueva contraseña */}
+      <Text className="mb-1">Nueva contraseña</Text>
+      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 mb-4">
         <TextInput
+          className="flex-1 py-3"
           secureTextEntry={!mostrarNueva}
           value={nueva}
           onChangeText={setNueva}
-          style={styles.passwordInput}
         />
         <TouchableOpacity onPress={() => setMostrarNueva(!mostrarNueva)}>
           <Ionicons
@@ -139,13 +136,14 @@ export default function CambiarContrasena() {
         </TouchableOpacity>
       </View>
 
-      <Text>Confirmar contraseña</Text>
-      <View style={styles.passwordContainer}>
+      {/* Campo: Confirmar contraseña */}
+      <Text className="mb-1">Confirmar contraseña</Text>
+      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 mb-6">
         <TextInput
+          className="flex-1 py-3"
           secureTextEntry={!mostrarConfirmar}
           value={confirmar}
           onChangeText={setConfirmar}
-          style={styles.passwordInput}
         />
         <TouchableOpacity
           onPress={() => setMostrarConfirmar(!mostrarConfirmar)}
@@ -157,35 +155,14 @@ export default function CambiarContrasena() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleChangePassword}>
-        <Text style={styles.buttonText}>Guardar</Text>
+      {/* Botón de guardar */}
+      <TouchableOpacity
+        className="bg-blue-500 rounded-lg py-4 items-center"
+        onPress={handleChangePassword}
+      >
+        <Text className="text-white font-bold text-base">Guardar</Text>
       </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  passwordInput: {
-    flex: 1,
-    paddingVertical: 12,
-  },
-  button: {
-    backgroundColor: "#3498db",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-});

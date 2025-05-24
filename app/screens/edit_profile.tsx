@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { supabase } from "@/lib/supabase";
-import { Ionicons } from "@expo/vector-icons";
+import HeaderWithBack from "../components/HeaderWithBack";
 
 const fieldLabels = {
   first_name: "Nombre",
@@ -33,7 +33,7 @@ export default function EditProfile() {
         error: sessionError,
       } = await supabase.auth.getSession();
       if (!session || sessionError) {
-        router.replace('./NotFoundScreen');
+        router.replace("./NotFoundScreen");
         return;
       }
 
@@ -87,34 +87,38 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white p-4">
-      <View>
-        <TouchableOpacity onPress={() => router.replace("./settings")}>
-          <Ionicons name="arrow-back" size={28} color="black" />
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <HeaderWithBack onPressBack={() => router.replace("./settings")} />
+      <View className="px-6 mt-6">
+        <Text className="text-xl font-bold mb-6">
+          Editar {fieldLabels[field]}
+        </Text>
+
+        <Text className="mb-1">Valor actual</Text>
+        <View className="border border-gray-300 rounded-lg px-3 py-3 mb-4 bg-white">
+          <Text>{currentValue || "Sin información"}</Text>
+        </View>
+
+        <Text className="mb-1">Nuevo {fieldLabels[field]}</Text>
+        <TextInput
+          className="border border-gray-300 p-3 rounded-lg bg-white mb-6"
+          placeholder={`Nuevo ${fieldLabels[field]}`}
+          value={newValue}
+          onChangeText={setNewValue}
+        />
+
+        <TouchableOpacity
+          className="bg-blue-500 p-4 rounded-lg items-center"
+          onPress={handleUpdate}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-base">Guardar</Text>
+          )}
         </TouchableOpacity>
       </View>
-
-      <Text className="text-xl font-bold mb-4">
-        Editar {fieldLabels[field]}
-      </Text>
-      <Text className="mb-2">Valor actual: {currentValue}</Text>
-      <TextInput
-        className="border border-gray-300 p-3 rounded-md mb-4"
-        placeholder={`Nuevo ${fieldLabels[field]}`}
-        value={newValue}
-        onChangeText={setNewValue}
-      />
-      <TouchableOpacity
-        className="bg-blue-500 p-4 rounded-md items-center"
-        onPress={handleUpdate}
-        disabled={loading}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="text-white font-bold">Guardar</Text>
-        )}
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }

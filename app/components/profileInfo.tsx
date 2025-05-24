@@ -1,6 +1,12 @@
-
 import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { supabase } from "@/lib/supabase";
 import { UserInfo } from "@/interfaces/interfaces_tables";
 import { FontAwesome } from "@expo/vector-icons";
@@ -10,16 +16,19 @@ import { getMimeType } from "../helpers/mimeType";
 
 interface ProfileInfoProps {
   userInfo: UserInfo;
-  refreshUserInfo: (newUrl?: string, fieldToUpdate?: "portada_url" | "icon_url") => Promise<void>;
+  refreshUserInfo: (
+    newUrl?: string,
+    fieldToUpdate?: "portada_url" | "icon_url"
+  ) => Promise<void>;
   isOnboarding?: boolean;
   canEditImages?: boolean; // Nueva propiedad booleana
 }
 
-export default function ProfileInfo({ 
-  userInfo, 
-  refreshUserInfo, 
-  isOnboarding = false, 
-  canEditImages = true // Por defecto es true para mantener compatibilidad
+export default function ProfileInfo({
+  userInfo,
+  refreshUserInfo,
+  isOnboarding = false,
+  canEditImages = true, // Por defecto es true para mantener compatibilidad
 }: ProfileInfoProps) {
   const [uploading, setUploading] = useState(false);
 
@@ -32,7 +41,7 @@ export default function ProfileInfo({
     bucket: "portadas" | "icons";
     filePrefix: string;
     columnToUpdate: "portada_url" | "icon_url";
-    onSuccess?: (url: string) => void; 
+    onSuccess?: (url: string) => void;
   }) => {
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -109,7 +118,7 @@ export default function ProfileInfo({
         filePrefix: "portada",
         columnToUpdate: "portada_url",
         onSuccess: (url) => {
-          refreshUserInfo(url, "portada_url"); 
+          refreshUserInfo(url, "portada_url");
           Alert.alert("Éxito", "La imagen de portada se ha actualizado.");
         },
       });
@@ -133,7 +142,7 @@ export default function ProfileInfo({
         filePrefix: "avatar",
         columnToUpdate: "icon_url",
         onSuccess: (url) => {
-          refreshUserInfo(url, "icon_url"); 
+          refreshUserInfo(url, "icon_url");
           Alert.alert("Éxito", "La imagen de perfil se ha actualizado.");
         },
       });
@@ -219,16 +228,30 @@ export default function ProfileInfo({
         <Text className="text-lg font-bold mt-4 mb-2">
           {isOnboarding ? "Tus datos" : "Biografia"}
         </Text>
-        <Text className="text-sm text-gray-600">{userInfo.bio}</Text>
-        <Text className="text-sm text-gray-600">Email: {userInfo.email}</Text>
         <Text className="text-sm text-gray-600">
-          Teléfono: {userInfo.phone_number || "No disponible"}
+          <Text className="font-normal">{userInfo.bio}</Text>
         </Text>
         <Text className="text-sm text-gray-600">
-          Universidad: {userInfo.university || "No disponible"}
+          <Text className="font-bold">Email: </Text>
+          <Text className="font-normal">{userInfo.email}</Text>
         </Text>
         <Text className="text-sm text-gray-600">
-          Curso: {userInfo.course || "No especificado"}
+          <Text className="font-bold">Teléfono: </Text>
+          <Text className="font-normal">
+            {userInfo.phone_number || "No disponible"}
+          </Text>
+        </Text>
+        <Text className="text-sm text-gray-600">
+          <Text className="font-bold">Universidad: </Text>
+          <Text className="font-normal">
+            {userInfo.university || "No especificada"}
+          </Text>
+        </Text>
+        <Text className="text-sm text-gray-600">
+          <Text className="font-bold">Curso: </Text>
+          <Text className="font-normal">
+            {userInfo.course || "No especificado"}
+          </Text>
         </Text>
       </View>
     </>

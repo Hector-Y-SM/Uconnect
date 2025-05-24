@@ -3,27 +3,25 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import HeaderWithBack from "../components/HeaderWithBack";
 
 export default function Settings() {
-
-  useEffect(()=> {
+  useEffect(() => {
     const getSession = async () => {
       const {
-          data: { session },
-        } = await supabase.auth.getSession();
-    
-        if (!session) {
-          router.replace('./NotFoundScreen');
-          return;
-        }
-    }
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.replace("./NotFoundScreen");
+        return;
+      }
+    };
 
     getSession();
-  }, [])
+  }, []);
 
   const handleLogout = async () => {
-
     Alert.alert(
       "Cerrar sesión",
       "¿Estás seguro de que quieres cerrar sesión?",
@@ -49,99 +47,54 @@ export default function Settings() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace("../(tabs)/profileScreen")}>
-          <Ionicons name="arrow-back" size={28} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Configuración</Text>
-      </View>
+    <SafeAreaView className="flex-1 bg-gray-100">
+      <HeaderWithBack onPressBack={() => router.push('../(tabs)')}/>
 
-      <View style={styles.optionsContainer}>
+      <View className="px-6 mt-6">
+        <Text className="text-lg font-semibold text-gray-800 mb-4">Configuración de cuenta</Text>
+
         <TouchableOpacity
-          style={styles.optionButton}
+          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
           onPress={() => router.push("./edit_profile?field=first_name")}
         >
-          <Text style={styles.optionText}>Cambiar nombre</Text>
+          <Text className="text-gray-700">Cambiar nombre</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.optionButton}
+          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
           onPress={() => router.push("./edit_profile?field=last_name")}
         >
-          <Text style={styles.optionText}>Cambiar apellido</Text>
+          <Text className="text-gray-700">Cambiar apellido</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.optionButton}
+          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
           onPress={() => router.push("./edit_profile?field=username")}
         >
-          <Text style={styles.optionText}>Cambiar nombre de usuario</Text>
+          <Text className="text-gray-700">Cambiar nombre de usuario</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.optionButton}
+          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
           onPress={() => router.push("./change_password")}
         >
-          <Text style={styles.optionText}>Cambiar contraseña</Text>
+          <Text className="text-gray-700">Cambiar contraseña</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.optionButton}
-          onPress={() => router.replace("./createPost")}
+          className="bg-white py-3 px-4 rounded-xl mb-6 shadow-sm"
+          onPress={() => router.replace("./post_saved")}
         >
-          <Text style={styles.optionText}>Ver Posts Guardados</Text>
+          <Text className="text-gray-700">Ver Posts Guardados</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          className="bg-red-500 py-3 px-4 rounded-xl"
+          onPress={handleLogout}
+        >
+          <Text className="text-white font-semibold text-center">Cerrar sesión</Text>
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    justifyContent: "space-between",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingTop: 10,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  optionsContainer: {
-    flex: 1,
-    justifyContent: "center",
-    gap: 20,
-  },
-  optionButton: {
-    paddingVertical: 15,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  optionText: {
-    fontSize: 16,
-  },
-  logoutButton: {
-    backgroundColor: "#ff5252",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  logoutText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-});
