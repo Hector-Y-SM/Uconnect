@@ -139,6 +139,7 @@ const PostSaved = () => {
             setModalVisible={setModalVisible}
             onPostUpdated={handlePostUpdated}
             onDeleteSavedPost={handleDeleteSavedPost}
+            showSaveButton={false}
           />
         )}
         ListEmptyComponent={

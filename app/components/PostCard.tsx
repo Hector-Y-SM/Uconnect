@@ -13,6 +13,7 @@ type PostCardProps = {
   setModalVisible: (visible: boolean) => void;
   onPostUpdated: () => void;
   onDeleteSavedPost?: (postUUID: string) => void;
+  showSaveButton?: boolean; // <--- Nueva prop opcional
 };
 
 const PostCard = ({
@@ -21,6 +22,7 @@ const PostCard = ({
   setModalVisible,
   onPostUpdated,
   onDeleteSavedPost,
+  showSaveButton = true, // Valor por defecto true para mostrar botón
 }: PostCardProps) => {
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
@@ -63,7 +65,6 @@ const PostCard = ({
         return;
       }
 
-      console.log(item.info_user);
       if (
         userData &&
         item.info_user &&
@@ -90,7 +91,6 @@ const PostCard = ({
     return count ?? 0;
   };
 
-  //acatualizar en cuanto se muestra la pantalla
   useEffect(() => {
     const loadCommentCount = async () => {
       const count = await fetchCommentCount(item.post_uuid);
@@ -100,28 +100,24 @@ const PostCard = ({
     loadCommentCount();
   }, [item.post_uuid]);
 
-  //actualizar en tiempo real x el amigo
   useEffect(() => {
-    // Crear un canal para escuchar cambios en los comentarios de este post específico
     const channel = supabase
       .channel(`post-comments-${item.post_uuid}`)
       .on(
         "postgres_changes",
         {
-          event: "*", // Escuchar inserts, updates y deletes
+          event: "*",
           schema: "public",
           table: "comments",
-          filter: `post_uuid=eq.${item.post_uuid}`, // Solo para este post
+          filter: `post_uuid=eq.${item.post_uuid}`,
         },
         async () => {
-          // Cuando ocurra cualquier cambio, actualizar el contador
           const newCount = await fetchCommentCount(item.post_uuid);
           setCommentLength(newCount);
         }
       )
       .subscribe();
 
-    // Limpiar la suscripción cuando el componente se desmonte
     return () => {
       supabase.removeChannel(channel);
     };
@@ -139,16 +135,14 @@ const PostCard = ({
       return;
     }
 
-    // Verificar si ya fue guardado
     const { data: existing, error: fetchError } = await supabase
       .from("my_saved")
       .select("saved_uuid")
       .eq("post_uuid", item.post_uuid)
       .eq("user_uuid", currentUserUUID)
-      .single(); // Usamos single porque solo debería haber uno
+      .single();
 
     if (fetchError && fetchError.code !== "PGRST116") {
-      // PGRST116 es cuando no hay resultados (lo cual está bien)
       console.error(
         "Error al verificar si ya se guardó el post:",
         fetchError.message
@@ -157,7 +151,6 @@ const PostCard = ({
     }
 
     if (existing) {
-      // Aquí lanzamos la alerta en lugar de solo hacer un console.log
       Alert.alert(
         "Post ya guardado",
         "Este post ya está guardado en tus posts guardados.",
@@ -205,7 +198,6 @@ const PostCard = ({
             .eq("username", item.info_user?.username)
             .single();
 
-          //TODO: MANEJAR POSIBLES ERRORES
           const {
             data: { session },
           } = await supabase.auth.getSession();
@@ -250,21 +242,31 @@ const PostCard = ({
       <Text className="text-gray-700 mb-2">{item.description}</Text>
 
       <View className="flex-row justify-between mt-2">
-        <TouchableOpacity
-          onPress={handleSavePost}
-          className="flex-row items-center"
-        >
-          <FontAwesome name="bookmark-o" size={24} color="gray" />
-          <Text className="text-gray-500 ml-2 text-sm">Guardar</Text>
-        </TouchableOpacity>
+        {showSaveButton && (
+          <TouchableOpacity
+            onPress={handleSavePost}
+            className="flex-row items-center"
+          >
+            <FontAwesome name="bookmark" size={24} color="gray" />
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           onPress={() => setCommentModalVisible(true)}
           className="flex-row items-center"
         >
-          <FontAwesome name="comment-o" size={24} color="gray" />
+          <FontAwesome name="comments" size={24} color="gray" />
           <Text className="text-gray-500 ml-2 text-sm">{commentLength}</Text>
         </TouchableOpacity>
+
+        {onDeleteSavedPost && (
+          <TouchableOpacity
+            onPress={() => onDeleteSavedPost(item.post_uuid)}
+            className="flex-row items-center mt-2"
+          >
+            <FontAwesome name="trash" size={25} color="red" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <CommentModal
@@ -283,16 +285,6 @@ const PostCard = ({
           onPostUpdated();
         }}
       />
-
-      {onDeleteSavedPost && (
-        <TouchableOpacity
-          onPress={() => onDeleteSavedPost(item.post_uuid)}
-          className="flex-row items-center mt-2"
-        >
-          <FontAwesome name="trash" size={20} color="red" />
-          <Text className="text-red-500 ml-2 text-sm">Eliminar guardado</Text>
-        </TouchableOpacity>
-      )}
     </View>
   );
 };
