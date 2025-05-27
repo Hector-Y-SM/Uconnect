@@ -1,17 +1,12 @@
-
-import React from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import SearchBar from './SearchBar';
-import { router } from 'expo-router';
+import React from "react";
+import { View, TouchableOpacity, Image } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import SearchBar from "./SearchBar";
+import { router } from "expo-router";
 
 type Props = {
   onPressFilter: () => void;
 };
-
-
-
-
 
 export default function HeaderWithSearch({ onPressFilter }: Props) {
   return (
@@ -19,10 +14,13 @@ export default function HeaderWithSearch({ onPressFilter }: Props) {
       {/* Fila superior: Icono + Botón de configuración */}
       <View className="flex-row items-center justify-between mb-2">
         <Image
-          source={{ uri: 'https://via.placeholder.com/36' }} // Reemplaza con tu logo
+          source={{ uri: "https://via.placeholder.com/36" }} // Reemplaza con tu logo
           style={{ width: 36, height: 36, borderRadius: 18 }}
         />
-        <TouchableOpacity className="p-2 bg-gray-100 rounded-full" onPress={() => router.push('../screens/settings')}>
+        <TouchableOpacity
+          className="p-2 bg-gray-100 rounded-full"
+          onPress={() => router.push("../screens/settings")}
+        >
           <Ionicons name="settings-outline" size={22} color="#374151" />
         </TouchableOpacity>
       </View>
@@ -33,35 +31,20 @@ export default function HeaderWithSearch({ onPressFilter }: Props) {
           <SearchBar placeHolder="Buscar..." />
         </View>
 
+        <TouchableOpacity
+          className="p-2 bg-gray-100 rounded-full mr-2"
+          onPress={onPressFilter}
+        >
+          <Ionicons name="funnel-outline" size={20} color="#374151" />
+        </TouchableOpacity>
 
-
-
-        
-      <TouchableOpacity 
-      className="p-2 bg-gray-100 rounded-full mr-2"
-      onPress={onPressFilter}>
-        <Ionicons name="funnel-outline" size={20} color="#374151" />
-      </TouchableOpacity>
-    
-
-        <TouchableOpacity className="p-2 bg-rose-100 rounded-full" onPress={() => router.push('../screens/createEditPost')}>
+        <TouchableOpacity
+          className="p-2 bg-rose-100 rounded-full"
+          onPress={() => router.push("../screens/createEditPost")}
+        >
           <Ionicons name="add-circle-outline" size={20} color="#f43f5e" />
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -26,6 +26,7 @@ export default function HomeScreen() {
   const [filterVisible, setFilterVisible] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [allCourses, setAllCourses] = useState<string[]>([]);
+  const [orderBy, setOrderBy] = React.useState<"recent" | "oldest">("recent");
 
   const fetchPosts = async () => {
     try {
@@ -33,7 +34,8 @@ export default function HomeScreen() {
 
       const { data, error } = await supabase
         .from("posts")
-        .select(`
+        .select(
+          `
           post_uuid,
           description,
           image_url,
@@ -42,7 +44,8 @@ export default function HomeScreen() {
           info_user:info_user ( username ),
           category:category_post ( category_name ),
           post_courses ( courses ( name_course ) )
-        `)
+        `
+        )
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -53,18 +56,21 @@ export default function HomeScreen() {
         image_url: post.image_url,
         created_at: post.created_at,
         user_uuid: post.user_uuid,
-        info_user: Array.isArray(post.info_user) ? post.info_user[0] : post.info_user,
-        category: Array.isArray(post.category) ? post.category[0] : post.category,
+        info_user: Array.isArray(post.info_user)
+          ? post.info_user[0]
+          : post.info_user,
+        category: Array.isArray(post.category)
+          ? post.category[0]
+          : post.category,
         courses: post.post_courses?.flatMap((pc) => pc.courses) || [],
       }));
 
       setPosts(formattedPosts);
 
-      // Extraer nombres únicos de cursos
       const courseNames = [
         ...new Set(
-          formattedPosts.flatMap((post) =>
-            post.courses?.map((c) => c.name_course) ?? []
+          formattedPosts.flatMap(
+            (post) => post.courses?.map((c) => c.name_course) ?? []
           )
         ),
       ];
@@ -76,27 +82,39 @@ export default function HomeScreen() {
     }
   };
 
-  // Filtrar posts si hay cursos seleccionados (al menos uno)
-  const filteredPosts =
-    selectedCourses.length > 0
-      ? posts.filter((post) =>
-          post.courses?.some((c) => selectedCourses.includes(c.name_course))
-        )
-      : posts;
+  const filteredPosts = React.useMemo(() => {
+    let filtered =
+      selectedCourses.length > 0
+        ? posts.filter((post) =>
+            post.courses?.some((c) => selectedCourses.includes(c.name_course))
+          )
+        : posts;
 
-  // Toggle para agregar o quitar curso del filtro
+    filtered = filtered.slice(); // para no mutar original
+    filtered.sort((a, b) => {
+      if (orderBy === "recent") {
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      } else {
+        return (
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+      }
+    });
+
+    return filtered;
+  }, [posts, selectedCourses, orderBy]);
+
   const handleToggleCourse = (course: string) => {
-    if (selectedCourses.includes(course)) {
-      setSelectedCourses((prev) => prev.filter((c) => c !== course));
-    } else {
-      setSelectedCourses((prev) => [...prev, course]);
-    }
+    setSelectedCourses((prev) =>
+      prev.includes(course)
+        ? prev.filter((c) => c !== course)
+        : [...prev, course]
+    );
   };
 
-  // Limpiar filtros
-  const handleClearCourses = () => {
-    setSelectedCourses([]);
-  };
+  const handleClearCourses = () => setSelectedCourses([]);
 
   useEffect(() => {
     fetchPosts();
@@ -189,6 +207,8 @@ export default function HomeScreen() {
         onClearCourses={handleClearCourses}
         availableCourses={allCourses}
         selectedCourses={selectedCourses}
+        orderBy={orderBy}
+        onChangeOrder={setOrderBy}
       />
     </SafeAreaView>
   );

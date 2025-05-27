@@ -5,10 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onToggleCourse: (course: string) => void; 
+  onToggleCourse: (course: string) => void;
   onClearCourses: () => void;
   availableCourses: string[];
   selectedCourses: string[];
+
+  orderBy: "recent" | "oldest";            
+  onChangeOrder: (order: "recent" | "oldest") => void; 
 };
 
 export default function PostFilter({
@@ -18,13 +21,15 @@ export default function PostFilter({
   onClearCourses,
   availableCourses,
   selectedCourses,
+  orderBy,
+  onChangeOrder,
 }: Props) {
   const isSelected = (course: string) => selectedCourses.includes(course);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View className="flex-1 justify-end bg-black/50">
-        <View className="bg-white p-4 rounded-t-2xl max-h-[60%]">
+        <View className="bg-white p-4 rounded-t-2xl max-h-[70%]">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-lg font-bold">Filtrar por carrera</Text>
             <TouchableOpacity onPress={onClose}>
@@ -32,11 +37,39 @@ export default function PostFilter({
             </TouchableOpacity>
           </View>
 
+          <View className="mb-4">
+            <Text className="font-semibold mb-2">Ordenar por fecha</Text>
+            <View className="flex-row space-x-4">
+              <TouchableOpacity
+                className={`p-2 rounded border ${
+                  orderBy === "recent"
+                    ? "bg-blue-100 border-blue-400"
+                    : "bg-gray-100 border-gray-300"
+                }`}
+                onPress={() => onChangeOrder("recent")}
+              >
+                <Text>Más recientes</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className={`p-2 rounded border ${
+                  orderBy === "oldest"
+                    ? "bg-blue-100 border-blue-400"
+                    : "bg-gray-100 border-gray-300"
+                }`}
+                onPress={() => onChangeOrder("oldest")}
+              >
+                <Text>Más antiguos</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <ScrollView>
             <TouchableOpacity
               className="p-2 rounded bg-red-100 mb-2"
               onPress={() => {
                 onClearCourses();
+                onChangeOrder("recent");
                 onClose();
               }}
             >
@@ -47,7 +80,9 @@ export default function PostFilter({
               <TouchableOpacity
                 key={index}
                 className={`flex-row items-center justify-between p-3 rounded mb-2 border ${
-                  isSelected(course) ? "bg-blue-100 border-blue-400" : "bg-gray-100 border-gray-300"
+                  isSelected(course)
+                    ? "bg-blue-100 border-blue-400"
+                    : "bg-gray-100 border-gray-300"
                 }`}
                 onPress={() => onToggleCourse(course)}
               >
@@ -63,10 +98,3 @@ export default function PostFilter({
     </Modal>
   );
 }
-
-
-
-
-
-
-

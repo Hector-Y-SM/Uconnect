@@ -16,6 +16,7 @@ const fieldLabels = {
   first_name: "Nombre",
   last_name: "Apellido",
   username: "Nombre de usuario",
+  bio: "Biografía",
 };
 
 type EditableField = keyof typeof fieldLabels;
@@ -105,6 +106,9 @@ export default function EditProfile() {
           placeholder={`Nuevo ${fieldLabels[field]}`}
           value={newValue}
           onChangeText={setNewValue}
+          multiline={field === "bio"}
+          numberOfLines={field === "bio" ? 5 : 1}
+          textAlignVertical={field === "bio" ? "top" : "center"}
         />
 
         <TouchableOpacity

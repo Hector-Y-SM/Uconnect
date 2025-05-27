@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
@@ -26,10 +26,7 @@ export default function Settings() {
       "Cerrar sesión",
       "¿Estás seguro de que quieres cerrar sesión?",
       [
-        {
-          text: "Cancelar",
-          style: "cancel",
-        },
+        { text: "Cancelar", style: "cancel" },
         {
           text: "Cerrar sesión",
           style: "destructive",
@@ -48,10 +45,12 @@ export default function Settings() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <HeaderWithBack onPressBack={() => router.push('../(tabs)')}/>
+      <HeaderWithBack onPressBack={() => router.push("../(tabs)")} />
 
       <View className="px-6 mt-6">
-        <Text className="text-lg font-semibold text-gray-800 mb-4">Configuración de cuenta</Text>
+        <Text className="text-lg font-semibold text-gray-800 mb-4">
+          Configuración de cuenta
+        </Text>
 
         <TouchableOpacity
           className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
@@ -74,6 +73,14 @@ export default function Settings() {
           <Text className="text-gray-700">Cambiar nombre de usuario</Text>
         </TouchableOpacity>
 
+        {/* Nuevo botón para editar biografía */}
+        <TouchableOpacity
+          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
+          onPress={() => router.push("./edit_profile?field=bio")}
+        >
+          <Text className="text-gray-700">Editar biografía</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
           onPress={() => router.push("./change_password")}
@@ -92,7 +99,9 @@ export default function Settings() {
           className="bg-red-500 py-3 px-4 rounded-xl"
           onPress={handleLogout}
         >
-          <Text className="text-white font-semibold text-center">Cerrar sesión</Text>
+          <Text className="text-white font-semibold text-center">
+            Cerrar sesión
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
