@@ -5,7 +5,6 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
-  Alert,
   RefreshControl,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -14,8 +13,7 @@ import HeaderWithSearch from "../components/HeaderWithSearch";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Post } from "@/interfaces/interfaces_tables";
 import PostCard from "../components/PostCard";
-  import PostFilter from "../components/PostFilter";
-
+import PostFilter from "../components/PostFilter";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -24,70 +22,82 @@ export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Para filtros
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [allCourses, setAllCourses] = useState<string[]>([]);
 
-// Dentro del componente HomeScreen
-const [filterVisible, setFilterVisible] = useState(false);
-const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-const [allCourses, setAllCourses] = useState<string[]>([]);
+  const fetchPosts = async () => {
+    try {
+      setRefreshing(true);
 
-// Modifica fetchPosts para extraer los cursos también
-const fetchPosts = async () => {
-  try {
-    setRefreshing(true);
+      const { data, error } = await supabase
+        .from("posts")
+        .select(`
+          post_uuid,
+          description,
+          image_url,
+          created_at,
+          user_uuid,
+          info_user:info_user ( username ),
+          category:category_post ( category_name ),
+          post_courses ( courses ( name_course ) )
+        `)
+        .order("created_at", { ascending: false });
 
-    const { data, error } = await supabase
-      .from("posts")
-      .select(`
-        post_uuid,
-        description,
-        image_url,
-        created_at,
-        user_uuid,
-        info_user:info_user ( username ),
-        category:category_post ( category_name ),
-        post_courses ( courses ( name_course ) )
-      `)
-      .order("created_at", { ascending: false });
+      if (error) throw error;
 
-    if (error) throw error;
+      const formattedPosts: Post[] = data.map((post) => ({
+        post_uuid: post.post_uuid,
+        description: post.description,
+        image_url: post.image_url,
+        created_at: post.created_at,
+        user_uuid: post.user_uuid,
+        info_user: Array.isArray(post.info_user) ? post.info_user[0] : post.info_user,
+        category: Array.isArray(post.category) ? post.category[0] : post.category,
+        courses: post.post_courses?.flatMap((pc) => pc.courses) || [],
+      }));
 
-    const formattedPosts: Post[] = data.map((post) => ({
-      post_uuid: post.post_uuid,
-      description: post.description,
-      image_url: post.image_url,
-      created_at: post.created_at,
-      user_uuid: post.user_uuid,
-      info_user: Array.isArray(post.info_user) ? post.info_user[0] : post.info_user,
-      category: Array.isArray(post.category) ? post.category[0] : post.category,
-      courses: post.post_courses?.flatMap((pc) => pc.courses) || [],
-    }));
+      setPosts(formattedPosts);
 
-    setPosts(formattedPosts);
+      // Extraer nombres únicos de cursos
+      const courseNames = [
+        ...new Set(
+          formattedPosts.flatMap((post) =>
+            post.courses?.map((c) => c.name_course) ?? []
+          )
+        ),
+      ];
+      setAllCourses(courseNames);
+    } catch (error) {
+      console.error("Error inesperado:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
-    // Extraer los nombres de las carreras únicas
-    const courseNames = [
-      ...new Set(
-        formattedPosts.flatMap((post) =>
-          post.courses?.map((c) => c.name_course) ?? []
+  // Filtrar posts si hay cursos seleccionados (al menos uno)
+  const filteredPosts =
+    selectedCourses.length > 0
+      ? posts.filter((post) =>
+          post.courses?.some((c) => selectedCourses.includes(c.name_course))
         )
-      ),
-    ];
-    setAllCourses(courseNames);
-  } catch (error) {
-    console.error("Error inesperado:", error);
-  } finally {
-    setRefreshing(false);
-  }
-};
+      : posts;
 
-const filteredPosts = selectedCourse
-  ? posts.filter((post) =>
-      post.courses?.some((c) => c.name_course === selectedCourse)
-    )
-  : posts;
+  // Toggle para agregar o quitar curso del filtro
+  const handleToggleCourse = (course: string) => {
+    if (selectedCourses.includes(course)) {
+      setSelectedCourses((prev) => prev.filter((c) => c !== course));
+    } else {
+      setSelectedCourses((prev) => [...prev, course]);
+    }
+  };
 
+  // Limpiar filtros
+  const handleClearCourses = () => {
+    setSelectedCourses([]);
+  };
 
-  // Cargar posts iniciales
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -100,31 +110,23 @@ const filteredPosts = selectedCourse
     }, [])
   );
 
-  // Configuración de suscripción en tiempo real a cambios en posts
   useEffect(() => {
-    // Canal para todos los cambios en la tabla posts
     const channel = supabase
       .channel("posts-changes-home")
       .on(
         "postgres_changes",
         {
-          event: "*", // Escuchar inserts, updates y deletes
+          event: "*",
           schema: "public",
           table: "posts",
         },
         (payload) => {
-          console.log(
-            "Cambio detectado en posts desde HomeScreen:",
-            payload.eventType,
-            payload
-          );
-          // Refrescar todos los posts cuando haya cualquier cambio
+          console.log("Cambio detectado en posts:", payload.eventType, payload);
           fetchPosts();
         }
       )
       .subscribe();
 
-    // Limpiar la suscripción cuando el componente se desmonte
     return () => {
       supabase.removeChannel(channel);
     };
@@ -139,9 +141,7 @@ const filteredPosts = selectedCourse
       item={item}
       setSelectedImage={setSelectedImage}
       setModalVisible={setModalVisible}
-      onPostUpdated={() => {
-        fetchPosts();
-      }}
+      onPostUpdated={fetchPosts}
     />
   );
 
@@ -151,7 +151,6 @@ const filteredPosts = selectedCourse
 
       <FlatList
         data={filteredPosts}
-
         keyExtractor={(item) => item.post_uuid}
         renderItem={renderPost}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
@@ -184,13 +183,13 @@ const filteredPosts = selectedCourse
       </Modal>
 
       <PostFilter
-  visible={filterVisible}
-  onClose={() => setFilterVisible(false)}
-  onSelectCourse={(course) => setSelectedCourse(course)}
-  availableCourses={allCourses}
-  selectedCourse={selectedCourse}
-/>
-
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        onToggleCourse={handleToggleCourse}
+        onClearCourses={handleClearCourses}
+        availableCourses={allCourses}
+        selectedCourses={selectedCourses}
+      />
     </SafeAreaView>
   );
 }

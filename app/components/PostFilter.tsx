@@ -5,18 +5,22 @@ import { Ionicons } from "@expo/vector-icons";
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onSelectCourse: (course: string | null) => void;
+  onToggleCourse: (course: string) => void; 
+  onClearCourses: () => void;
   availableCourses: string[];
-  selectedCourse: string | null;
+  selectedCourses: string[];
 };
 
 export default function PostFilter({
   visible,
   onClose,
-  onSelectCourse,
+  onToggleCourse,
+  onClearCourses,
   availableCourses,
-  selectedCourse,
+  selectedCourses,
 }: Props) {
+  const isSelected = (course: string) => selectedCourses.includes(course);
+
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View className="flex-1 justify-end bg-black/50">
@@ -30,27 +34,27 @@ export default function PostFilter({
 
           <ScrollView>
             <TouchableOpacity
-              className="p-2 rounded bg-gray-100 mb-2"
+              className="p-2 rounded bg-red-100 mb-2"
               onPress={() => {
-                onSelectCourse(null);
+                onClearCourses();
                 onClose();
               }}
             >
-              <Text className="text-center">Todas las carreras</Text>
+              <Text className="text-center font-semibold">Limpiar filtros</Text>
             </TouchableOpacity>
 
             {availableCourses.map((course, index) => (
               <TouchableOpacity
                 key={index}
-                className={`p-2 rounded mb-2 ${
-                  selectedCourse === course ? "bg-blue-100" : "bg-gray-100"
+                className={`flex-row items-center justify-between p-3 rounded mb-2 border ${
+                  isSelected(course) ? "bg-blue-100 border-blue-400" : "bg-gray-100 border-gray-300"
                 }`}
-                onPress={() => {
-                  onSelectCourse(course);
-                  onClose();
-                }}
+                onPress={() => onToggleCourse(course)}
               >
-                <Text className="text-center">{course}</Text>
+                <Text className="text-base">{course}</Text>
+                {isSelected(course) && (
+                  <Ionicons name="checkmark-circle" size={20} color="blue" />
+                )}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -59,3 +63,10 @@ export default function PostFilter({
     </Modal>
   );
 }
+
+
+
+
+
+
+
