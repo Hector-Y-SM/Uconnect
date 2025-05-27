@@ -13,7 +13,7 @@ type PostCardProps = {
   setModalVisible: (visible: boolean) => void;
   onPostUpdated: () => void;
   onDeleteSavedPost?: (postUUID: string) => void;
-  showSaveButton?: boolean; // <--- Nueva prop opcional
+  showSaveButton?: boolean;
 };
 
 const PostCard = ({

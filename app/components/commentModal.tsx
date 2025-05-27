@@ -21,7 +21,6 @@ interface CommentModalProps {
   postAuthor: string;
 }
 
-// Para poder obtener el nombre de usuario y foto del comentario original
 interface CommentWithUserInfo extends Comment {
   user_icon?: string;
   user_name?: string;

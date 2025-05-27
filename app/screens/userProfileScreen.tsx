@@ -20,7 +20,6 @@ export default function UserProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Configurar suscripciones en tiempo real para este usuario específico
   useEffect(() => {
     console.log("userUuid recibido:", userUuid);
     
@@ -31,7 +30,6 @@ export default function UserProfileScreen() {
     }
 
     const setupSubscriptions = () => {
-      // Canal para cambios en los posts de este usuario específico
       const postsChannel = supabase
         .channel(`realtime-posts-${userUuid}`)
         .on(
@@ -49,7 +47,7 @@ export default function UserProfileScreen() {
         )
         .subscribe();
 
-      // Canal para cambios en la información del usuario
+    
       const userInfoChannel = supabase
         .channel(`realtime-user-info-${userUuid}`)
         .on(
@@ -73,7 +71,7 @@ export default function UserProfileScreen() {
       };
     };
 
-    // Cargar datos iniciales
+
     const loadInitialData = async () => {
       setLoading(true);
       setError(null);
@@ -160,7 +158,6 @@ export default function UserProfileScreen() {
     if (!userUuid) return;
 
     try {
-      // Obtener información del usuario con cursos
       const { data: infoWithCourses, error: infoError } = await supabase
         .from("info_user")
         .select(
@@ -184,7 +181,6 @@ export default function UserProfileScreen() {
         throw new Error("No user info found for the provided UUID");
       }
 
-      // Obtener email del usuario autenticado (si es necesario)
       let userEmail = "";
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -223,12 +219,11 @@ export default function UserProfileScreen() {
     }
   };
 
-  // Función para refrescar información del usuario (solo lectura)
   const refreshUserInfo = async () => {
     await fetchUserInfo();
   };
 
-  // Función para refrescar posts del usuario (para UserPosts)
+
   const refreshUserPosts = () => {
     fetchUserPosts();
   };
@@ -289,7 +284,6 @@ export default function UserProfileScreen() {
           refreshUserPosts={refreshUserPosts}
         />
 
-        {/* Modal para mostrar imagen en grande */}
         <Modal visible={modalVisible} transparent animationType="fade">
           <TouchableOpacity
             style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.7)" }}

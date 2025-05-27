@@ -18,7 +18,6 @@ export default function ProfileScreen() {
   const [userId, setUserId] = useState<string | null>(null);
   const navigation = useNavigation()
 
-  // Obtener el ID del usuario y configurar las suscripciones
   useEffect(() => {
     const setupUserAndSubscriptions = async () => {
       const {
@@ -57,7 +56,7 @@ export default function ProfileScreen() {
         )
         .subscribe();
 
-      // Cargar datos iniciales
+
       fetchUserInfo(currentUserId);
   
       return () => {
