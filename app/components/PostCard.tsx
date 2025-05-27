@@ -189,6 +189,16 @@ const PostCard = ({
           />
         </TouchableOpacity>
       ) : null}
+      {item.created_at && (
+        <Text className="text-gray-400 text-xs mb-1">
+          Publicado el{" "}
+          {new Date(item.created_at).toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          })}
+        </Text>
+      )}
 
       <TouchableOpacity
         onPress={async () => {
