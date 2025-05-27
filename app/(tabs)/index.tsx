@@ -27,6 +27,8 @@ export default function HomeScreen() {
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [allCourses, setAllCourses] = useState<string[]>([]);
   const [orderBy, setOrderBy] = React.useState<"recent" | "oldest">("recent");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
 
   const fetchPosts = async () => {
     try {
@@ -67,6 +69,15 @@ export default function HomeScreen() {
 
       setPosts(formattedPosts);
 
+      const categoryNames = [
+        ...new Set(
+          formattedPosts
+            .map((post) => post.category?.category_name)
+            .filter((name): name is string => typeof name === "string")
+        ),
+      ];
+      setAllCategories(categoryNames);
+
       const courseNames = [
         ...new Set(
           formattedPosts.flatMap(
@@ -83,14 +94,21 @@ export default function HomeScreen() {
   };
 
   const filteredPosts = React.useMemo(() => {
-    let filtered =
-      selectedCourses.length > 0
-        ? posts.filter((post) =>
-            post.courses?.some((c) => selectedCourses.includes(c.name_course))
-          )
-        : posts;
+    let filtered = posts;
 
-    filtered = filtered.slice(); // para no mutar original
+    if (selectedCourses.length > 0) {
+      filtered = filtered.filter((post) =>
+        post.courses?.some((c) => selectedCourses.includes(c.name_course))
+      );
+    }
+
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((post) =>
+        selectedCategories.includes(post.category?.category_name ?? "")
+      );
+    }
+
+    filtered = filtered.slice();
     filtered.sort((a, b) => {
       if (orderBy === "recent") {
         return (
@@ -104,7 +122,7 @@ export default function HomeScreen() {
     });
 
     return filtered;
-  }, [posts, selectedCourses, orderBy]);
+  }, [posts, selectedCourses, selectedCategories, orderBy]);
 
   const handleToggleCourse = (course: string) => {
     setSelectedCourses((prev) =>
@@ -113,6 +131,16 @@ export default function HomeScreen() {
         : [...prev, course]
     );
   };
+
+  const handleToggleCategory = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const handleClearCategories = () => setSelectedCategories([]);
 
   const handleClearCourses = () => setSelectedCourses([]);
 
@@ -209,6 +237,11 @@ export default function HomeScreen() {
         selectedCourses={selectedCourses}
         orderBy={orderBy}
         onChangeOrder={setOrderBy}
+        // NUEVAS props para categorías
+        availableCategories={allCategories}
+        selectedCategories={selectedCategories}
+        onToggleCategory={handleToggleCategory}
+        onClearCategories={handleClearCategories}
       />
     </SafeAreaView>
   );
