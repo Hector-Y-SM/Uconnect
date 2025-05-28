@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from './SearchBar';
 import { router } from 'expo-router';
+import UserCard from './UserCard';
 
 export default function HeaderWithSearch({ backgroundColor = '#fff' }) {
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
   return (
     <View style={[styles.header, { backgroundColor }]}>
       <View className="flex-row items-center">
@@ -14,7 +17,19 @@ export default function HeaderWithSearch({ backgroundColor = '#fff' }) {
         />
 
         <View className="flex-1 mr-2">
-          <SearchBar placeHolder="Buscar..." />
+          <SearchBar 
+            placeHolder="Buscar usuarios..."
+            onSearchResults={(users) => {
+              setSearchResults(users);
+            }}
+          />
+          {searchResults.length > 0 && (
+            <View className="absolute top-16 left-0 right-0 z-50 max-h-64 overflow-hidden bg-transparent rounded-b-xl">
+              {searchResults.map((user) => (
+                <UserCard key={user.user_uuid} user={user} />
+              ))}
+            </View>
+          )}
         </View>
 
         <TouchableOpacity style={styles.iconButton}>
