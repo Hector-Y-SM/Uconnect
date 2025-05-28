@@ -44,9 +44,8 @@ export default function Settings() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <HeaderWithBack onPressBack={() => router.push("../(tabs)")} />
-
       <View style={styles.container}>
         <Text style={styles.title}>Configuración de cuenta</Text>
 
@@ -110,9 +109,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 24,
+    backgroundColor: "#fff", // <- agrega esto si quieres asegurar fondo blanco
   },
   title: {
-    fontSize: 22,
+    fontSize: 18, // antes 22
     fontWeight: "bold",
     color: "#22223b",
     marginBottom: 24,
@@ -124,7 +124,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 4,
     marginBottom: 32,
-    // Sombra
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
@@ -132,18 +131,18 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   optionButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 14, // un poco menos alto
+    paddingHorizontal: 14,
     borderBottomWidth: 1,
     borderBottomColor: "#f3f4f6",
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 14, // antes 16
     color: "#374151",
   },
   logoutButton: {
     backgroundColor: "#8C092C",
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 8,
@@ -156,7 +155,7 @@ const styles = StyleSheet.create({
   logoutText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 14, // antes 16
     letterSpacing: 1,
   },
 });

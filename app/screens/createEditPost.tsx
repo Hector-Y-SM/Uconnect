@@ -322,7 +322,7 @@ export default function CreateEditPost() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <HeaderWithBack />
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 }}
@@ -343,13 +343,19 @@ export default function CreateEditPost() {
             <Picker
               selectedValue={selectedCategory}
               onValueChange={(value) => setSelectedCategory(value)}
+              itemStyle={{ fontSize: 13, color: "#374151" }}
             >
-              <Picker.Item label="Selecciona una categoría" value="" />
+              <Picker.Item
+                label="Selecciona una categoría"
+                value=""
+                style={{ fontSize: 13, color: "#374151" }} // <-- aquí
+              />
               {categories.map((cat) => (
                 <Picker.Item
                   key={cat.uuid_category_pk}
                   label={cat.category_name}
                   value={cat.uuid_category_pk}
+                  style={{ fontSize: 13, color: "#374151" }} // <-- aquí también
                 />
               ))}
             </Picker>
@@ -452,51 +458,52 @@ export default function CreateEditPost() {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 16,
-    paddingHorizontal: 24,
+    marginTop: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 22,
+    fontSize: 17,
     fontWeight: "bold",
     color: "#22223b",
-    marginBottom: 8,
+    marginBottom: 4,
     alignSelf: "center",
   },
   subtitle: {
-    fontSize: 15,
-    color: "#374151",
-    marginBottom: 20,
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 12,
     alignSelf: "center",
   },
   label: {
-    fontSize: 15,
-    color: "#374151",
-    marginBottom: 4,
+    fontSize: 12,
+    color: "#888",
+    marginBottom: 2,
     marginLeft: 2,
   },
   pickerBox: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    marginBottom: 16,
+    borderColor: "#ececec",
+    borderRadius: 8,
+    backgroundColor: "#fafafa",
+    marginBottom: 10,
     overflow: "hidden",
   },
   coursesBox: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
+    backgroundColor: "#fafafa",
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    padding: 8,
-    marginBottom: 16,
+    borderColor: "#ececec",
+    padding: 6,
+    marginBottom: 10,
   },
   courseButton: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 8,
+    borderColor: "#ececec",
+    borderRadius: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    marginBottom: 6,
     backgroundColor: "#fff",
   },
   courseButtonSelected: {
@@ -505,63 +512,58 @@ const styles = StyleSheet.create({
   },
   textArea: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    padding: 12,
-    fontSize: 16,
-    minHeight: 100,
-    marginBottom: 16,
+    borderColor: "#ececec",
+    borderRadius: 8,
+    backgroundColor: "#fafafa",
+    padding: 10,
+    fontSize: 13,
+    minHeight: 90,
+    marginBottom: 10,
   },
   imageButton: {
-    marginTop: 4,
-    paddingVertical: 12,
+    marginTop: 2,
+    paddingVertical: 10,
     backgroundColor: "#fbe9ef",
-    borderRadius: 10,
+    borderRadius: 8,
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   imageButtonText: {
     color: "#8C092C",
     fontWeight: "bold",
-    fontSize: 15,
+    fontSize: 12,
   },
   imagePreviewBox: {
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: 10,
+    marginBottom: 6,
     position: "relative",
     alignItems: "center",
   },
   imagePreview: {
     width: "100%",
-    height: 200,
-    borderRadius: 10,
+    height: 160,
+    borderRadius: 8,
   },
   closeImageButton: {
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 6,
+    right: 6,
     backgroundColor: "#fff",
-    padding: 4,
+    padding: 3,
     borderRadius: 999,
-    elevation: 2,
+    elevation: 1,
   },
   publishButton: {
-    marginTop: 24,
+    marginTop: 18,
     backgroundColor: "#8C092C",
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
     alignItems: "center",
-    shadowColor: "#8C092C",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 2,
   },
   publishButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
-    letterSpacing: 1,
+    fontSize: 13,
+    letterSpacing: 0.5,
   },
 });

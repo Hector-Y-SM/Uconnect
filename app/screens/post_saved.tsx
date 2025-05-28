@@ -6,6 +6,7 @@ import {
   Image,
   TouchableOpacity,
   Text,
+  StyleSheet,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -116,18 +117,18 @@ const PostSaved = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-gray-100">
-        <ActivityIndicator size="large" color="#000" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#8C092C" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <HeaderWithBack onPressBack={() => router.push("./settings")} />
 
-      <View className="px-6 mt-6">
-        <Text className="text-xl font-bold mb-6">Posts Guardados</Text>
+      <View style={styles.headerBox}>
+        <Text style={styles.title}>Posts Guardados</Text>
       </View>
       <FlatList
         data={savedPosts}
@@ -143,23 +144,24 @@ const PostSaved = () => {
           />
         )}
         ListEmptyComponent={
-          <View className="flex-1 justify-center items-center mt-10">
-            <Text className="text-gray-500 text-lg">
+          <View style={styles.emptyBox}>
+            <Text style={styles.emptyText}>
               No hay posts guardados
             </Text>
           </View>
         }
+        contentContainerStyle={{ paddingBottom: 40 }}
       />
 
       <Modal visible={modalVisible} transparent animationType="fade">
         <TouchableOpacity
-          className="flex-1 bg-black/90 justify-center items-center"
+          style={styles.modalOverlay}
           onPress={() => setModalVisible(false)}
         >
           {selectedImage && (
             <Image
               source={{ uri: selectedImage }}
-              className="w-11/12 h-3/4 rounded-lg"
+              style={styles.modalImage}
               resizeMode="contain"
             />
           )}
@@ -168,5 +170,47 @@ const PostSaved = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  headerBox: {
+    paddingHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 8,
+  },
+  emptyBox: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 40,
+  },
+  emptyText: {
+    textAlign: "center",
+    color: "#b0b0b0",
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalImage: {
+    width: "92%",
+    height: "75%",
+    borderRadius: 12,
+  },
+});
 
 export default PostSaved;

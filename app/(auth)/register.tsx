@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "@/lib/supabase";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState("");
@@ -67,7 +68,11 @@ export default function SignUpScreen() {
             placeholderTextColor="#aaa"
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.icon}>{showPassword ? "🚫" : "👁️"}</Text>
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#8C092C"
+            />
           </TouchableOpacity>
         </View>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert, StyleSheet } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { Post } from "@/interfaces/interfaces_tables";
 import CommentModal from "./commentModal";
@@ -22,14 +22,30 @@ const PostCard = ({
   setModalVisible,
   onPostUpdated,
   onDeleteSavedPost,
-  showSaveButton = true, // Valor por defecto true para mostrar botón
+  showSaveButton = true,
 }: PostCardProps) => {
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [commentLength, setCommentLength] = useState(0);
   const [isAuthor, setIsAuthor] = useState(false);
   const [currentUserUUID, setCurrentUserUUID] = useState<string | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
   const router = useRouter();
+
+  // Función para obtener la URL pública del avatar de Supabase Storage
+  const getAvatarUrl = () => {
+    const url = item.info_user?.icon_url;
+    console.log("ICON_URL:", url); // <-- Esto te mostrará en consola el valor real
+    if (!url || url === "" || url === null) {
+      return "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    }
+    if (url.startsWith("http")) {
+      return url;
+    }
+    // Limpia cualquier 'icons/' o '/' al inicio
+    const cleanUrl = url.replace(/^icons\//, "").replace(/^\//, "");
+    return `https://gofbqtsnjixwtoqqvjlv.supabase.co/storage/v1/object/public/icons/${cleanUrl}`;
+  };
 
   useEffect(() => {
     const checkCurrentUser = async () => {
@@ -38,32 +54,27 @@ const PostCard = ({
         error: sessionError,
       } = await supabase.auth.getSession();
 
-      if (sessionError) {
-        console.error("Error al obtener la sesión:", sessionError.message);
-        return;
-      }
-
-      if (!session?.user) {
-        console.log("No hay sesión de usuario activa");
-        return;
-      }
+      if (sessionError) return;
+      if (!session?.user) return;
 
       const userUUID = session.user.id;
       setCurrentUserUUID(userUUID);
 
-      const { data: userData, error: userError } = await supabase
+      // Check if post is saved
+      const { data: saved } = await supabase
+        .from("my_saved")
+        .select("saved_uuid")
+        .eq("post_uuid", item.post_uuid)
+        .eq("user_uuid", userUUID)
+        .single();
+      setIsSaved(!!saved);
+
+      // Check author
+      const { data: userData } = await supabase
         .from("info_user")
         .select("*")
         .eq("user_uuid", userUUID)
         .single();
-
-      if (userError) {
-        console.error(
-          "Error al obtener información del usuario:",
-          userError.message
-        );
-        return;
-      }
 
       if (
         userData &&
@@ -75,19 +86,13 @@ const PostCard = ({
     };
 
     checkCurrentUser();
-  }, [item.info_user?.username]);
+  }, [item.info_user?.username, item.post_uuid]);
 
   const fetchCommentCount = async (postId: string): Promise<number> => {
-    const { count, error } = await supabase
+    const { count } = await supabase
       .from("comments")
       .select("*", { count: "exact", head: true })
       .eq("post_uuid", postId);
-
-    if (error) {
-      console.error("Error fetching comment count:", error.message);
-      return 0;
-    }
-
     return count ?? 0;
   };
 
@@ -96,7 +101,6 @@ const PostCard = ({
       const count = await fetchCommentCount(item.post_uuid);
       setCommentLength(count);
     };
-
     loadCommentCount();
   }, [item.post_uuid]);
 
@@ -130,10 +134,7 @@ const PostCard = ({
   };
 
   const handleSavePost = async () => {
-    if (!currentUserUUID) {
-      console.error("Usuario no autenticado");
-      return;
-    }
+    if (!currentUserUUID) return;
 
     const { data: existing, error: fetchError } = await supabase
       .from("my_saved")
@@ -141,14 +142,6 @@ const PostCard = ({
       .eq("post_uuid", item.post_uuid)
       .eq("user_uuid", currentUserUUID)
       .single();
-
-    if (fetchError && fetchError.code !== "PGRST116") {
-      console.error(
-        "Error al verificar si ya se guardó el post:",
-        fetchError.message
-      );
-      return;
-    }
 
     if (existing) {
       Alert.alert(
@@ -159,38 +152,56 @@ const PostCard = ({
       return;
     }
 
-    const { data, error } = await supabase.from("my_saved").insert([
+    const { error } = await supabase.from("my_saved").insert([
       {
         post_uuid: item.post_uuid,
         user_uuid: currentUserUUID,
       },
     ]);
-
-    if (error) {
-      console.error("Error al guardar el post:", error.message);
-    } else {
-      console.log("Post guardado exitosamente", data);
-    }
+    if (!error) setIsSaved(true);
   };
 
   return (
-    <View className="bg-white m-4 p-4 rounded-xl shadow">
-      {item.image_url ? (
+    <View style={styles.card}>
+      <View style={styles.headerRow}>
         <TouchableOpacity
-          onPress={() => {
-            setSelectedImage(item.image_url!);
-            setModalVisible(true);
+          onPress={async () => {
+            const { data } = await supabase
+              .from("info_user")
+              .select("user_uuid")
+              .eq("username", item.info_user?.username)
+              .single();
+
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
+
+            if (session?.user.id == data?.user_uuid) {
+              router.push({ pathname: "../(tabs)/profileScreen" });
+              return;
+            }
+
+            router.push({
+              pathname: "../screens/userProfileScreen",
+              params: { userUuid: data?.user_uuid },
+            });
           }}
+          style={styles.userRow}
         >
-          <Image
-            source={{ uri: item.image_url }}
-            className="w-full h-48 rounded-md mb-2"
-            resizeMode="cover"
-          />
+          <Text style={styles.username}>@{item.info_user?.username || "Desconocido"}</Text>
         </TouchableOpacity>
-      ) : null}
+        {isAuthor && (
+          <TouchableOpacity
+            onPress={() => setOptionsModalVisible(true)}
+            style={styles.optionsBtn}
+          >
+            <FontAwesome name="ellipsis-h" size={20} color="gray" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       {item.created_at && (
-        <Text className="text-gray-400 text-xs mb-1">
+        <Text style={styles.date}>
           Publicado el{" "}
           {new Date(item.created_at).toLocaleDateString("es-ES", {
             day: "2-digit",
@@ -200,81 +211,66 @@ const PostCard = ({
         </Text>
       )}
 
-      <TouchableOpacity
-        onPress={async () => {
-          const { data, error } = await supabase
-            .from("info_user")
-            .select("user_uuid")
-            .eq("username", item.info_user?.username)
-            .single();
-
-          const {
-            data: { session },
-          } = await supabase.auth.getSession();
-
-          if (session?.user.id == data?.user_uuid) {
-            router.push({ pathname: "../(tabs)/profileScreen" });
-            return;
-          }
-
-          router.push({
-            pathname: "../screens/userProfileScreen",
-            params: { userUuid: data?.user_uuid },
-          });
-        }}
-      >
-        <Text className="font-bold text-lg mb-1">
-          @{item.info_user?.username || "Desconocido"}
-        </Text>
-      </TouchableOpacity>
-
-      {isAuthor && (
-        <TouchableOpacity
-          onPress={() => setOptionsModalVisible(true)}
-          className="flex-row items-center"
-        >
-          <FontAwesome name="ellipsis-h" size={24} color="gray" />
-          <Text className="text-gray-500 ml-2 text-sm">Opciones</Text>
-        </TouchableOpacity>
-      )}
-
-      <Text className="text-sm text-gray-500 mb-1">
-        Cursos:{" "}
+      <Text style={styles.courses}>
+        <Text style={{ fontWeight: 'bold' }}>Cursos:</Text>{" "}
         {item.courses.length > 0
           ? item.courses.map((c) => c.name_course).join(", ")
           : "No especificado"}
       </Text>
 
-      <Text className="text-sm text-gray-500 mb-2">
-        Tipo: {item.category?.category_name || "No especificado"}
+      <Text style={styles.category}>
+        <Text style={{ fontWeight: 'bold' }}>Tipo:</Text>{" "}
+        {item.category?.category_name || "No especificado"}
       </Text>
 
-      <Text className="text-gray-700 mb-2">{item.description}</Text>
+      <Text style={styles.description} numberOfLines={4}>
+        {item.description}
+      </Text>
 
-      <View className="flex-row justify-between mt-2">
+      {/* Imagen SOLO debajo de la descripción */}
+      {item.image_url ? (
+        <TouchableOpacity
+          onPress={() => {
+            setSelectedImage(item.image_url!);
+            setModalVisible(true);
+          }}
+        >
+          <Image
+            source={{ uri: item.image_url }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
+      ) : null}
+
+      <View style={styles.actionsRow}>
         {showSaveButton && (
           <TouchableOpacity
             onPress={handleSavePost}
-            className="flex-row items-center"
+            style={styles.actionBtn}
           >
-            <FontAwesome name="bookmark" size={24} color="gray" />
+            <FontAwesome
+              name="bookmark"
+              size={22}
+              color={isSaved ? "#8C092C" : "gray"}
+            />
           </TouchableOpacity>
         )}
 
         <TouchableOpacity
           onPress={() => setCommentModalVisible(true)}
-          className="flex-row items-center"
+          style={styles.actionBtn}
         >
-          <FontAwesome name="comments" size={24} color="gray" />
-          <Text className="text-gray-500 ml-2 text-sm">{commentLength}</Text>
+          <FontAwesome name="comments" size={22} color="#8C092C" />
+          <Text style={styles.commentCount}>{commentLength}</Text>
         </TouchableOpacity>
 
         {onDeleteSavedPost && (
           <TouchableOpacity
             onPress={() => onDeleteSavedPost(item.post_uuid)}
-            className="flex-row items-center mt-2"
+            style={styles.actionBtn}
           >
-            <FontAwesome name="trash" size={25} color="red" />
+            <FontAwesome name="trash" size={22} color="red" />
           </TouchableOpacity>
         )}
       </View>
@@ -298,5 +294,89 @@ const PostCard = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 12,
+    marginVertical: 8,
+    padding: 14,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  image: {
+    width: "100%",
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
+  userRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 8,
+    backgroundColor: "#eee",
+  },
+  username: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "#222",
+  },
+  optionsBtn: {
+    padding: 4,
+  },
+  date: {
+    color: "#888",
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  courses: {
+    fontSize: 13,
+    color: "#555",
+    marginBottom: 1,
+  },
+  category: {
+    fontSize: 13,
+    color: "#8C092C",
+    marginBottom: 4,
+  },
+  description: {
+    fontSize: 15,
+    color: "#222",
+    marginBottom: 8,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 18,
+    marginTop: 4,
+  },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 6,
+  },
+  commentCount: {
+    marginLeft: 4,
+    color: "#8C092C",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+});
 
 export default PostCard;

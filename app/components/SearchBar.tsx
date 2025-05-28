@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { TextInput, View } from "react-native";
+import { TextInput, View, ActivityIndicator } from "react-native";
 import { supabase } from "@/lib/supabase";
 import '@/app/global.css'
 
@@ -13,8 +13,10 @@ interface Props {
 
 export default function SearchBar({ placeHolder, value, onChangeText, onSearchResults }: Props) {
   const [searchTerm, setSearchTerm] = useState(value || '');
-  
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
+    setLoading(true);
     const debounceTimer = setTimeout(async () => {
       if (searchTerm.trim()) {
         try {
@@ -25,7 +27,6 @@ export default function SearchBar({ placeHolder, value, onChangeText, onSearchRe
             .limit(10);
 
           if (error) throw error;
-          
           onSearchResults?.(data || []);
         } catch (error) {
           console.error('Error searching users:', error);
@@ -34,9 +35,13 @@ export default function SearchBar({ placeHolder, value, onChangeText, onSearchRe
       } else {
         onSearchResults?.([]);
       }
-    }, 2000);
+      setLoading(false);
+    }, 700); // Menor tiempo para mejor UX
 
-    return () => clearTimeout(debounceTimer);
+    return () => {
+      clearTimeout(debounceTimer);
+      setLoading(false);
+    };
   }, [searchTerm]);
 
   const handleTextChange = (text: string) => {
@@ -45,16 +50,39 @@ export default function SearchBar({ placeHolder, value, onChangeText, onSearchRe
   };
 
   return (
-    <View className="flex-row items-center bg-gray-100 rounded-t-3xl px-5 py-2 shadow-sm shadow-gray-300">
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f3f4f6',
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        height: 32,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+        flex: 1,
+      }}
+    >
       <Ionicons name="search-outline" size={18} color="#6B7280" />
       <TextInput
         placeholder={placeHolder}
         placeholderTextColor="#9CA3AF"
         value={searchTerm}
         onChangeText={handleTextChange}
-        style={{ fontSize: 16 }}
-        className="flex-1 ml-2 text-gray-800"
+        style={{
+          fontSize: 13, // Fuente más chica
+          marginLeft: 8,
+          color: '#222',
+          flex: 1,
+          paddingVertical: 0,
+          height: 32,
+        }}
       />
+      {loading && (
+        <ActivityIndicator size="small" color="#8C092C" style={{ marginLeft: 8 }} />
+      )}
     </View>
   );
 }

@@ -98,7 +98,8 @@ export default function CambiarContrasena() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <HeaderWithBack onPressBack={() => router.push("./settings")} />
       <View style={styles.container}>
         <Text style={styles.title}>Cambiar Contraseña</Text>
 
@@ -116,7 +117,7 @@ export default function CambiarContrasena() {
           <TouchableOpacity onPress={() => setMostrarActual(!mostrarActual)}>
             <Ionicons
               name={mostrarActual ? "eye-off-outline" : "eye-outline"}
-              size={22}
+              size={20}
               color="#8C092C"
             />
           </TouchableOpacity>
@@ -136,7 +137,7 @@ export default function CambiarContrasena() {
           <TouchableOpacity onPress={() => setMostrarNueva(!mostrarNueva)}>
             <Ionicons
               name={mostrarNueva ? "eye-off-outline" : "eye-outline"}
-              size={22}
+              size={20}
               color="#8C092C"
             />
           </TouchableOpacity>
@@ -158,7 +159,7 @@ export default function CambiarContrasena() {
           >
             <Ionicons
               name={mostrarConfirmar ? "eye-off-outline" : "eye-outline"}
-              size={22}
+              size={20}
               color="#8C092C"
             />
           </TouchableOpacity>
@@ -181,16 +182,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 32,
     flex: 1,
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#22223b",
     marginBottom: 24,
     alignSelf: "center",
   },
   label: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#374151",
     marginBottom: 4,
     marginLeft: 2,
@@ -207,13 +209,13 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    paddingVertical: 12,
-    fontSize: 16,
+    paddingVertical: 10,
+    fontSize: 13,
     color: "#22223b",
   },
   saveButton: {
     backgroundColor: "#8C092C",
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 8,
@@ -226,7 +228,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 14,
     letterSpacing: 1,
   },
 });

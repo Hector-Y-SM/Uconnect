@@ -32,8 +32,8 @@ export default function UserPosts({
   );
 
   return (
-    <View className="flex-1 bg-gray-100">
-      <Text className="text-lg font-bold mx-4 mt-4 mb-2">
+    <View style={{ flex: 1, backgroundColor: "#fff" }}>
+      <Text style={{ fontSize: 18, fontWeight: "bold", marginHorizontal: 16, marginTop: 16, marginBottom: 8, color: "#22223b" }}>
         Publicaciones
       </Text>
       <FlatList
@@ -43,7 +43,7 @@ export default function UserPosts({
         renderItem={renderPost}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
         ListEmptyComponent={
-          <Text className="text-center text-gray-400 mt-6">
+          <Text style={{ textAlign: "center", color: "#b0b0b0", marginTop: 24, fontSize: 14 }}>
             No has creado publicaciones aún.
           </Text>
         }

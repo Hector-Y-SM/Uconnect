@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet, Alert, Text, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -9,7 +10,6 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  
   const handleLogin = async () => {
     const iteEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ite\.edu\.mx$/;
     const ensenadaEmail = /^[a-zA-Z]{2,}[a-zA-Z0-9._%+-]*@ensenada\.edu\.mx$/;
@@ -39,16 +39,15 @@ export default function LoginScreen() {
     }
 
     try {
-  
-      const { error } = await supabase.auth.resetPasswordForEmail('al21760195@ite.edu.mx', {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'https://reset-password-uconnect.vercel.app/'
       });
 
       if (error) throw error;
 
       Alert.alert(
-        'Email Enviadooooo',
-        'Se ha enviado un enlace de recuperación a tu correo eleeeeeeeectrónico.\n\nPor favor, abre el enlace en tu dispositivo.'
+        'Email Enviado',
+        'Se ha enviado un enlace de recuperación a tu correo electrónico.\n\nPor favor, abre el enlace en tu dispositivo.'
       );
 
     } catch (error) {
@@ -85,7 +84,11 @@ export default function LoginScreen() {
           secureTextEntry={!showPassword}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Text style={styles.icon}>{showPassword ? '🚫' : '👁️'}</Text>
+          <Ionicons
+            name={showPassword ? "eye-off-outline" : "eye-outline"}
+            size={22}
+            color="#8C092C"
+          />
         </TouchableOpacity>
       </View>
 
@@ -164,8 +167,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logo: {
-    width: 220,      // tamaño
-    height: 220,     // altura we
+    width: 220,
+    height: 220,
     alignSelf: 'center',
     marginVertical: 20,
   },

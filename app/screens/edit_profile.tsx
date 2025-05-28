@@ -89,7 +89,7 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
       <HeaderWithBack onPressBack={() => router.replace("./settings")} />
       <View style={styles.container}>
         <Text style={styles.title}>
@@ -133,16 +133,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 32,
     flex: 1,
+    backgroundColor: "#fff",
   },
   title: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#22223b",
     marginBottom: 24,
     alignSelf: "center",
   },
   label: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#374151",
     marginBottom: 4,
     marginLeft: 2,
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
   },
   valueText: {
     color: "#374151",
-    fontSize: 16,
+    fontSize: 13,
   },
   input: {
     borderWidth: 1,
@@ -166,12 +167,12 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#fff",
     marginBottom: 24,
-    fontSize: 16,
+    fontSize: 13,
     minHeight: 48,
   },
   saveButton: {
     backgroundColor: "#8C092C",
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 8,
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
+    fontSize: 14,
     letterSpacing: 1,
   },
 });
