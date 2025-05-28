@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -20,7 +21,7 @@ import { getMimeType } from "../helpers/mimeType";
 import { Category, Course } from "@/interfaces/interfaces_tables";
 import { FontAwesome } from "@expo/vector-icons";
 import HeaderWithBack from "../components/HeaderWithBack";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 export default function CreateEditPost() {
@@ -321,25 +322,24 @@ export default function CreateEditPost() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
       <HeaderWithBack />
       <ScrollView
-        className="px-4"
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mt-4 px-4">
-          <Text className="text-lg font-semibold mb-2">
+        <View style={styles.container}>
+          <Text style={styles.title}>
             {isEditMode ? "Editar publicación" : "Crear publicación"}
           </Text>
-          <Text className="text-sm text-gray-600 mb-4">
+          <Text style={styles.subtitle}>
             Publicando como: {username}
           </Text>
 
           {/* Picker de Categoría */}
-          <Text className="mb-1">Tipo de publicación</Text>
-          <View className="border border-gray-300 rounded-md mb-4">
+          <Text style={styles.label}>Tipo de publicación</Text>
+          <View style={styles.pickerBox}>
             <Picker
               selectedValue={selectedCategory}
               onValueChange={(value) => setSelectedCategory(value)}
@@ -356,8 +356,8 @@ export default function CreateEditPost() {
           </View>
 
           {/* Picker de Curso */}
-          <Text className="mb-1">Dirigido a (selección múltiple):</Text>
-          <View className="border border-gray-300 rounded-md mb-4 p-2">
+          <Text style={styles.label}>Dirigido a (selección múltiple):</Text>
+          <View style={styles.coursesBox}>
             {courses.map((course) => (
               <TouchableOpacity
                 key={course.course_uuid}
@@ -373,40 +373,49 @@ export default function CreateEditPost() {
                     ]);
                   }
                 }}
-                className={`border p-2 rounded-md mb-2 ${
+                style={[
+                  styles.courseButton,
                   selectedCourses.includes(course.course_uuid)
-                    ? "bg-indigo-200"
-                    : "bg-white"
-                }`}
+                    ? styles.courseButtonSelected
+                    : {},
+                ]}
               >
-                <Text>{course.name_course}</Text>
+                <Text
+                  style={{
+                    color: selectedCourses.includes(course.course_uuid)
+                      ? "#8C092C"
+                      : "#22223b",
+                  }}
+                >
+                  {course.name_course}
+                </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           <TextInput
-            className="border border-gray-300 rounded-md p-3 h-32 text-base"
+            style={styles.textArea}
             placeholder="¿Qué estás pensando?"
             multiline
             value={description}
-            style={{ textAlignVertical: "top" }}
             onChangeText={setDescription}
+            textAlignVertical="top"
           />
 
           <TouchableOpacity
-            className="mt-3 p-3 bg-indigo-100 rounded-md items-center"
+            style={styles.imageButton}
             onPress={pickImage}
           >
-            <Text className="text-indigo-600">
+            <Text style={styles.imageButtonText}>
               {image ? "Cambiar imagen" : "Agregar imagen"}
             </Text>
           </TouchableOpacity>
 
           {image && (
-            <View className="mt-4 relative">
+            <View style={styles.imagePreviewBox}>
               <Image
                 source={{ uri: image }}
-                className="w-full h-64 rounded-md"
+                style={styles.imagePreview}
                 resizeMode="contain"
               />
 
@@ -415,7 +424,7 @@ export default function CreateEditPost() {
                   setImage(null);
                   setImageUrl(null);
                 }}
-                className="absolute top-2 right-2 bg-white p-1 rounded-full shadow"
+                style={styles.closeImageButton}
               >
                 <FontAwesome name="close" size={20} color="red" />
               </TouchableOpacity>
@@ -423,14 +432,14 @@ export default function CreateEditPost() {
           )}
 
           <TouchableOpacity
-            className="mt-6 bg-indigo-600 py-3 rounded-md items-center"
+            style={styles.publishButton}
             onPress={handlePost}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text className="text-white font-semibold">
+              <Text style={styles.publishButtonText}>
                 {isEditMode ? "Actualizar" : "Publicar"}
               </Text>
             )}
@@ -440,3 +449,119 @@ export default function CreateEditPost() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 16,
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 8,
+    alignSelf: "center",
+  },
+  subtitle: {
+    fontSize: 15,
+    color: "#374151",
+    marginBottom: 20,
+    alignSelf: "center",
+  },
+  label: {
+    fontSize: 15,
+    color: "#374151",
+    marginBottom: 4,
+    marginLeft: 2,
+  },
+  pickerBox: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    marginBottom: 16,
+    overflow: "hidden",
+  },
+  coursesBox: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    padding: 8,
+    marginBottom: 16,
+  },
+  courseButton: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+    backgroundColor: "#fff",
+  },
+  courseButtonSelected: {
+    backgroundColor: "#fbe9ef",
+    borderColor: "#8C092C",
+  },
+  textArea: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    padding: 12,
+    fontSize: 16,
+    minHeight: 100,
+    marginBottom: 16,
+  },
+  imageButton: {
+    marginTop: 4,
+    paddingVertical: 12,
+    backgroundColor: "#fbe9ef",
+    borderRadius: 10,
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  imageButtonText: {
+    color: "#8C092C",
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  imagePreviewBox: {
+    marginTop: 16,
+    marginBottom: 8,
+    position: "relative",
+    alignItems: "center",
+  },
+  imagePreview: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+  },
+  closeImageButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "#fff",
+    padding: 4,
+    borderRadius: 999,
+    elevation: 2,
+  },
+  publishButton: {
+    marginTop: 24,
+    backgroundColor: "#8C092C",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#8C092C",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  publishButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+});

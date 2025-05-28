@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ScrollView } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { Post, UserInfo } from "@/interfaces/interfaces_tables";
-import Header from "../components/Header";
+import HeaderWithSearch from "../components/HeaderWithSearch";
 import ProfileInfo from "../components/profileInfo";
 import UserPosts from "../components/userPost";
 import { useFocusEffect, useNavigation, useRouter } from "expo-router";
@@ -218,7 +218,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <Header />
+      <HeaderWithSearch backgroundColor="#8C092C" />
       <ScrollView
         className="px-4"
         contentContainerStyle={{ paddingBottom: 40 }}

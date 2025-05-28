@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
 import { router } from "expo-router";
@@ -44,66 +44,119 @@ export default function Settings() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
       <HeaderWithBack onPressBack={() => router.push("../(tabs)")} />
 
-      <View className="px-6 mt-6">
-        <Text className="text-lg font-semibold text-gray-800 mb-4">
-          Configuración de cuenta
-        </Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Configuración de cuenta</Text>
+
+        <View style={styles.optionsBox}>
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={() => router.push("./edit_profile?field=first_name")}
+          >
+            <Text style={styles.optionText}>Cambiar nombre</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={() => router.push("./edit_profile?field=last_name")}
+          >
+            <Text style={styles.optionText}>Cambiar apellido</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={() => router.push("./edit_profile?field=username")}
+          >
+            <Text style={styles.optionText}>Cambiar nombre de usuario</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={() => router.push("./edit_profile?field=bio")}
+          >
+            <Text style={styles.optionText}>Editar biografía</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={() => router.push("./change_password")}
+          >
+            <Text style={styles.optionText}>Cambiar contraseña</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.optionButton}
+            onPress={() => router.replace("./post_saved")}
+          >
+            <Text style={styles.optionText}>Ver Posts Guardados</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
-          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
-          onPress={() => router.push("./edit_profile?field=first_name")}
-        >
-          <Text className="text-gray-700">Cambiar nombre</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
-          onPress={() => router.push("./edit_profile?field=last_name")}
-        >
-          <Text className="text-gray-700">Cambiar apellido</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
-          onPress={() => router.push("./edit_profile?field=username")}
-        >
-          <Text className="text-gray-700">Cambiar nombre de usuario</Text>
-        </TouchableOpacity>
-
-        {/* Nuevo botón para editar biografía */}
-        <TouchableOpacity
-          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
-          onPress={() => router.push("./edit_profile?field=bio")}
-        >
-          <Text className="text-gray-700">Editar biografía</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-white py-3 px-4 rounded-xl mb-3 shadow-sm"
-          onPress={() => router.push("./change_password")}
-        >
-          <Text className="text-gray-700">Cambiar contraseña</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-white py-3 px-4 rounded-xl mb-6 shadow-sm"
-          onPress={() => router.replace("./post_saved")}
-        >
-          <Text className="text-gray-700">Ver Posts Guardados</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          className="bg-red-500 py-3 px-4 rounded-xl"
+          style={styles.logoutButton}
           onPress={handleLogout}
         >
-          <Text className="text-white font-semibold text-center">
-            Cerrar sesión
-          </Text>
+          <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 24,
+    alignSelf: "center",
+  },
+  optionsBox: {
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    marginBottom: 32,
+    // Sombra
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  optionButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  optionText: {
+    fontSize: 16,
+    color: "#374151",
+  },
+  logoutButton: {
+    backgroundColor: "#8C092C",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 8,
+    shadowColor: "#8C092C",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  logoutText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+});

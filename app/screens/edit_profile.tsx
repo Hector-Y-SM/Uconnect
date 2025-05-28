@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -88,21 +89,21 @@ export default function EditProfile() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
       <HeaderWithBack onPressBack={() => router.replace("./settings")} />
-      <View className="px-6 mt-6">
-        <Text className="text-xl font-bold mb-6">
+      <View style={styles.container}>
+        <Text style={styles.title}>
           Editar {fieldLabels[field]}
         </Text>
 
-        <Text className="mb-1">Valor actual</Text>
-        <View className="border border-gray-300 rounded-lg px-3 py-3 mb-4 bg-white">
-          <Text>{currentValue || "Sin información"}</Text>
+        <Text style={styles.label}>Valor actual</Text>
+        <View style={styles.valueBox}>
+          <Text style={styles.valueText}>{currentValue || "Sin información"}</Text>
         </View>
 
-        <Text className="mb-1">Nuevo {fieldLabels[field]}</Text>
+        <Text style={styles.label}>Nuevo {fieldLabels[field]}</Text>
         <TextInput
-          className="border border-gray-300 p-3 rounded-lg bg-white mb-6"
+          style={styles.input}
           placeholder={`Nuevo ${fieldLabels[field]}`}
           value={newValue}
           onChangeText={setNewValue}
@@ -112,17 +113,78 @@ export default function EditProfile() {
         />
 
         <TouchableOpacity
-          className="bg-blue-500 p-4 rounded-lg items-center"
+          style={styles.saveButton}
           onPress={handleUpdate}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="text-white font-bold text-base">Guardar</Text>
+            <Text style={styles.saveButtonText}>Guardar</Text>
           )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    flex: 1,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 24,
+    alignSelf: "center",
+  },
+  label: {
+    fontSize: 15,
+    color: "#374151",
+    marginBottom: 4,
+    marginLeft: 2,
+  },
+  valueBox: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    backgroundColor: "#fff",
+  },
+  valueText: {
+    color: "#374151",
+    fontSize: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    padding: 12,
+    backgroundColor: "#fff",
+    marginBottom: 24,
+    fontSize: 16,
+    minHeight: 48,
+  },
+  saveButton: {
+    backgroundColor: "#8C092C",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 8,
+    shadowColor: "#8C092C",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+});

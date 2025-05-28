@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "@/lib/supabase";
@@ -97,72 +98,135 @@ export default function CambiarContrasena() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      <HeaderWithBack onPressBack={() => router.push("./settings")} />
-      <View className="px-6 mt-6">
-      <Text className="text-xl font-bold mb-6">Cambiar Contraseña</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f3f4f6" }}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Cambiar Contraseña</Text>
 
-      {/* Campo: Contraseña actual */}
-      <Text className="mb-1">Contraseña actual</Text>
-      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 mb-4">
-        <TextInput
-          className="flex-1 py-3"
-          secureTextEntry={!mostrarActual}
-          value={actual}
-          onChangeText={setActual}
-        />
-        <TouchableOpacity onPress={() => setMostrarActual(!mostrarActual)}>
-          <Ionicons
-            name={mostrarActual ? "eye-off-outline" : "eye-outline"}
-            size={24}
+        {/* Campo: Contraseña actual */}
+        <Text style={styles.label}>Contraseña actual</Text>
+        <View style={styles.inputBox}>
+          <TextInput
+            style={styles.input}
+            secureTextEntry={!mostrarActual}
+            value={actual}
+            onChangeText={setActual}
+            placeholder="Ingresa tu contraseña actual"
+            placeholderTextColor="#b0b0b0"
           />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={() => setMostrarActual(!mostrarActual)}>
+            <Ionicons
+              name={mostrarActual ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#8C092C"
+            />
+          </TouchableOpacity>
+        </View>
 
-      {/* Campo: Nueva contraseña */}
-      <Text className="mb-1">Nueva contraseña</Text>
-      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 mb-4">
-        <TextInput
-          className="flex-1 py-3"
-          secureTextEntry={!mostrarNueva}
-          value={nueva}
-          onChangeText={setNueva}
-        />
-        <TouchableOpacity onPress={() => setMostrarNueva(!mostrarNueva)}>
-          <Ionicons
-            name={mostrarNueva ? "eye-off-outline" : "eye-outline"}
-            size={24}
+        {/* Campo: Nueva contraseña */}
+        <Text style={styles.label}>Nueva contraseña</Text>
+        <View style={styles.inputBox}>
+          <TextInput
+            style={styles.input}
+            secureTextEntry={!mostrarNueva}
+            value={nueva}
+            onChangeText={setNueva}
+            placeholder="Nueva contraseña"
+            placeholderTextColor="#b0b0b0"
           />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={() => setMostrarNueva(!mostrarNueva)}>
+            <Ionicons
+              name={mostrarNueva ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#8C092C"
+            />
+          </TouchableOpacity>
+        </View>
 
-      {/* Campo: Confirmar contraseña */}
-      <Text className="mb-1">Confirmar contraseña</Text>
-      <View className="flex-row items-center border border-gray-300 rounded-lg px-3 mb-6">
-        <TextInput
-          className="flex-1 py-3"
-          secureTextEntry={!mostrarConfirmar}
-          value={confirmar}
-          onChangeText={setConfirmar}
-        />
+        {/* Campo: Confirmar contraseña */}
+        <Text style={styles.label}>Confirmar contraseña</Text>
+        <View style={styles.inputBox}>
+          <TextInput
+            style={styles.input}
+            secureTextEntry={!mostrarConfirmar}
+            value={confirmar}
+            onChangeText={setConfirmar}
+            placeholder="Repite la nueva contraseña"
+            placeholderTextColor="#b0b0b0"
+          />
+          <TouchableOpacity
+            onPress={() => setMostrarConfirmar(!mostrarConfirmar)}
+          >
+            <Ionicons
+              name={mostrarConfirmar ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color="#8C092C"
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Botón de guardar */}
         <TouchableOpacity
-          onPress={() => setMostrarConfirmar(!mostrarConfirmar)}
+          style={styles.saveButton}
+          onPress={handleChangePassword}
         >
-          <Ionicons
-            name={mostrarConfirmar ? "eye-off-outline" : "eye-outline"}
-            size={24}
-          />
+          <Text style={styles.saveButtonText}>Guardar</Text>
         </TouchableOpacity>
-      </View>
-
-      {/* Botón de guardar */}
-      <TouchableOpacity
-        className="bg-blue-500 rounded-lg py-4 items-center"
-        onPress={handleChangePassword}
-      >
-        <Text className="text-white font-bold text-base">Guardar</Text>
-      </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    flex: 1,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 24,
+    alignSelf: "center",
+  },
+  label: {
+    fontSize: 15,
+    color: "#374151",
+    marginBottom: 4,
+    marginLeft: 2,
+  },
+  inputBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#22223b",
+  },
+  saveButton: {
+    backgroundColor: "#8C092C",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 8,
+    shadowColor: "#8C092C",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+});

@@ -44,6 +44,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     paddingHorizontal: 12,
+    height: 56, // Altura fija para la barra superior
+    justifyContent: 'center',
   },
   iconButton: {
     padding: 8,
