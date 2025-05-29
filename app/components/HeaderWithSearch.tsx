@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
-import { View, TouchableOpacity, Image, StyleSheet, Modal, TouchableWithoutFeedback, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import SearchBar from './SearchBar';
-import { router } from 'expo-router';
-import UserCard from './UserCard';
+import React, { useState } from "react";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  Modal,
+  TouchableWithoutFeedback,
+  Text,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import SearchBar from "./SearchBar";
+import { router } from "expo-router";
+import UserCard from "./UserCard";
 
-export default function HeaderWithSearch({ backgroundColor = '#fff' }) {
+type Props = {
+  onPressFilter?: () => void;
+  backgroundColor?: string;
+};
+
+export default function HeaderWithSearch({ onPressFilter, backgroundColor = "#fff" }: Props) {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -17,33 +30,36 @@ export default function HeaderWithSearch({ backgroundColor = '#fff' }) {
 
   return (
     <View style={[styles.header, { backgroundColor }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
         <Image
-          source={{ uri: 'https://via.placeholder.com/32' }}
+          source={{ uri: "https://via.placeholder.com/32" }}
           style={{ width: 32, height: 32, borderRadius: 16, marginRight: 8 }}
         />
 
         <View style={{ flex: 1, marginRight: 8 }}>
-          <SearchBar 
+          <SearchBar
             placeHolder="Buscar usuarios..."
             onSearchResults={handleSearchResults}
           />
         </View>
 
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="funnel-outline" size={15} color="#374151" />
+        <TouchableOpacity
+          className="p-2 bg-gray-100 rounded-full mr-2"
+          onPress={onPressFilter}
+        >
+          <Ionicons name="funnel-outline" size={20} color="#374151" />
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.iconButton, { backgroundColor: '#ffe4e6' }]}
-          onPress={() => router.push('../screens/createEditPost')}
+          style={[styles.iconButton, { backgroundColor: "#ffe4e6" }]}
+          onPress={() => router.push("../screens/createEditPost")}
         >
           <Ionicons name="add-circle-outline" size={15} color="#f43f5e" />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => router.push('../screens/settings')}
+          onPress={() => router.push("../screens/settings")}
         >
           <Ionicons name="settings-outline" size={15} color="#374151" />
         </TouchableOpacity>
@@ -65,7 +81,9 @@ export default function HeaderWithSearch({ backgroundColor = '#fff' }) {
                     <UserCard key={user.user_uuid} user={user} />
                   ))
                 ) : (
-                  <Text style={{ textAlign: 'center', color: '#888' }}>No hay resultados</Text>
+                  <Text style={{ textAlign: "center", color: "#888" }}>
+                    No hay resultados
+                  </Text>
                 )}
               </View>
             </TouchableWithoutFeedback>
@@ -82,29 +100,29 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     paddingHorizontal: 12,
     height: 56,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   iconButton: {
     padding: 8,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: "#f3f4f6",
     borderRadius: 999,
     marginLeft: 6,
     marginRight: 0,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "flex-start",
+    alignItems: "center",
     paddingTop: 70, // Espacio para que el modal salga debajo del header
   },
   modalContent: {
-    width: '90%',
+    width: "90%",
     maxHeight: 350,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 10,

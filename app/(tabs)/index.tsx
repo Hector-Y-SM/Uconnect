@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Text, Image, FlatList, TouchableOpacity, Modal, Alert, RefreshControl } from "react-native";
+import {
+  Text,
+  Image,
+  FlatList,
+  TouchableOpacity,
+  Modal,
+  Alert,
+  RefreshControl,
+} from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import HeaderWithSearch from "../components/HeaderWithSearch";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Post } from "@/interfaces/interfaces_tables";
 import PostCard from "../components/PostCard";
+import PostFilter from "../components/PostFilter";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -14,17 +23,23 @@ export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [allCourses, setAllCourses] = useState<string[]>([]);
+  const [orderBy, setOrderBy] = React.useState<"recent" | "oldest">("recent");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
   const fetchPosts = async () => {
     try {
       setRefreshing(true);
-      
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (!session) {
         Alert.alert("Error", "No session found.");
-        router.replace('../(auth)/login');
+        router.replace("../(auth)/login");
         return;
       }
 
@@ -55,7 +70,6 @@ export default function HomeScreen() {
       if (error) {
         console.error("Error al obtener posts:", error.message);
       } else {
-        
         const formattedPosts: Post[] = data.map((post) => ({
           post_uuid: post.post_uuid,
           description: post.description,
@@ -72,6 +86,24 @@ export default function HomeScreen() {
         }));
 
         setPosts(formattedPosts);
+
+        const categoryNames = [
+          ...new Set(
+            formattedPosts
+              .map((post) => post.category?.category_name)
+              .filter((name): name is string => typeof name === "string")
+          ),
+        ];
+        setAllCategories(categoryNames);
+
+        const courseNames = [
+          ...new Set(
+            formattedPosts.flatMap(
+              (post) => post.courses?.map((c) => c.name_course) ?? []
+            )
+          ),
+        ];
+        setAllCourses(courseNames);
       }
     } catch (error) {
       console.error("Error inesperado:", error);
@@ -80,15 +112,64 @@ export default function HomeScreen() {
     }
   };
 
-  // Cargar posts iniciales
+  const filteredPosts = React.useMemo(() => {
+    let filtered = posts;
+
+    if (selectedCourses.length > 0) {
+      filtered = filtered.filter((post) =>
+        post.courses?.some((c) => selectedCourses.includes(c.name_course))
+      );
+    }
+
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((post) =>
+        selectedCategories.includes(post.category?.category_name ?? "")
+      );
+    }
+
+    filtered = filtered.slice();
+    filtered.sort((a, b) => {
+      if (orderBy === "recent") {
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      } else {
+        return (
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+      }
+    });
+
+    return filtered;
+  }, [posts, selectedCourses, selectedCategories, orderBy]);
+
+  const handleToggleCourse = (course: string) => {
+    setSelectedCourses((prev) =>
+      prev.includes(course)
+        ? prev.filter((c) => c !== course)
+        : [...prev, course]
+    );
+  };
+
+  const handleToggleCategory = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const handleClearCategories = () => setSelectedCategories([]);
+
+  const handleClearCourses = () => setSelectedCourses([]);
+
   useEffect(() => {
     fetchPosts();
   }, []);
 
-
   useFocusEffect(
     React.useCallback(() => {
-      console.log('HomeScreen recibió foco - refrescando datos');
+      console.log("HomeScreen recibió foco - refrescando datos");
       fetchPosts();
       return () => {};
     }, [])
@@ -98,16 +179,20 @@ export default function HomeScreen() {
   useEffect(() => {
     // Canal para todos los cambios en la tabla posts
     const channel = supabase
-      .channel('posts-changes-home')
+      .channel("posts-changes-home")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*', // Escuchar inserts, updates y deletes
-          schema: 'public',
-          table: 'posts'
+          event: "*", // Escuchar inserts, updates y deletes
+          schema: "public",
+          table: "posts",
         },
         (payload) => {
-          console.log('Cambio detectado en posts desde HomeScreen:', payload.eventType, payload);
+          console.log(
+            "Cambio detectado en posts desde HomeScreen:",
+            payload.eventType,
+            payload
+          );
           // Refrescar todos los posts cuando haya cualquier cambio
           fetchPosts();
         }
@@ -137,9 +222,12 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <HeaderWithSearch backgroundColor="#8C092C" />
+      <HeaderWithSearch
+        backgroundColor="#8C092C"
+        onPressFilter={() => setFilterVisible(true)}
+      />
       <FlatList
-        data={posts}
+        data={filteredPosts}
         keyExtractor={(item) => item.post_uuid}
         renderItem={renderPost}
         contentContainerStyle={{ paddingBottom: 100, paddingTop: 10 }}
@@ -152,7 +240,7 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor="#2563eb" 
+            tintColor="#2563eb"
           />
         }
       />
@@ -170,6 +258,21 @@ export default function HomeScreen() {
           )}
         </TouchableOpacity>
       </Modal>
+
+      <PostFilter
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        onToggleCourse={handleToggleCourse}
+        onClearCourses={handleClearCourses}
+        availableCourses={allCourses}
+        selectedCourses={selectedCourses}
+        orderBy={orderBy}
+        onChangeOrder={setOrderBy}
+        availableCategories={allCategories}
+        selectedCategories={selectedCategories}
+        onToggleCategory={handleToggleCategory}
+        onClearCategories={handleClearCategories}
+      />
     </SafeAreaView>
   );
 }
